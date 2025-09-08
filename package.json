@@ -12,7 +12,7 @@
         "clean": "rm -rf node_modules coverage dist .nyc_output",
         "lint": "tslint -t stylish --project \"tsconfig.json\"",
         "format": "prettier --write \"**/*.ts\" \"**/*.json\" \"**/*.ejs\"",
-        "start:prod": "node dist/main",
+        "start:prod": "node dist/index.js",
         "pm2:start": "pm2 start npm --no-automation --name \"start:prod\" -- start",
         "pm2:restart": "pm2 restart start:prod"
     },
