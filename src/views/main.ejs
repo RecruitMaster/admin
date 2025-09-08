@@ -1,0 +1,33 @@
+<html lang="ru">
+    <head>
+        <%- include ('partials/head.ejs') %>
+    </head>
+    <body>
+        <div class="preloader"></div>
+
+        <div id="page-top">
+            <div id="wrapper">
+                <%- include ('partials/sidebar.ejs') %>
+                <div id="content-wrapper" class="d-flex flex-column">
+                    <div id="content">
+                        <%- include ('partials/header.ejs') %>
+
+                        <div class="container-fluid">
+                            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                                <h1 class="h3 mb-0 text-gray-800">Admin panel Recruit Master</h1>
+                            </div>
+                        </div>
+                    </div>
+                    <%- include('partials/footer') %>
+                </div>
+            </div>
+        </div>
+
+        <a class="scroll-to-top rounded" href="#page-top">
+            <i class="fas fa-angle-up"></i>
+        </a>
+
+        <%- include('modals/logout') %>
+        <%- include('modals/message') %>
+    </body>
+</html>

@@ -1,0 +1,55 @@
+<% if (locals.pagination) { %>
+<ul class="pagination">
+	<% if (pagination.pagesCount <= 9) { %>
+		<% for (let i = 1; (i <= 9 && i <= pagination.pagesCount); i++) { %>
+		<li class="<%= pagination.pageNumber == i ? "active disabled" : "" %>">
+			<a href="<%= pagination.page + (pagination.pageQuery ? `${pagination.pageQuery}&page=${i}` : `?page=${i}`) %> " ><%= i %></a>
+		</li>
+		<% } %>
+	<% } else { %>
+		<% if (pagination.pageNumber > pagination.pagesCount - 5) { %>
+			<li>
+				<a href="<%= pagination.page + (pagination.pageQuery ? `${pagination.pageQuery}&page=1` : `?page=1`) %>">1</a>
+			</li>
+			<li class="disabled"><a href="">...</a></li>
+			<% for (let i = pagination.pagesCount - 6; (i <= pagination.pagesCount); i++) { %>
+			<li class="<%= pagination.pageNumber == i ? "active disabled" : "" %>">
+				<a href="<%= pagination.page + (pagination.pageQuery ? `${pagination.pageQuery}&page=${i}` : `?page=${i}`) %>"><%= i %></a>
+			</li>
+			<% } %>
+		<% } else { %>
+			<% if (pagination.pageNumber <= 5) { %>
+				<% for (let i = 1; i <= 7; i++) { %>
+				<li class="<%= pagination.pageNumber == i ? "active disabled" : "" %>">
+					<a href="<%= pagination.page + (pagination.pageQuery ? `${pagination.pageQuery}&page=${i}` : `?page=${i}`) %>"><%= i %></a>
+				</li>
+				<% } %>
+				<li class="disabled">
+					<a href="">...</a>
+				</li>
+				<li>
+					<a href="<%= pagination.page + (pagination.pageQuery ? `${pagination.pageQuery}&page=${pagination.pagesCount}` : `?page=${pagination.pagesCount}`) %>"><%= pagination.pagesCount %></a>
+				</li>
+			<% } else { %>
+				<li>
+					<a href="<%= pagination.page + (pagination.pageQuery ? `${pagination.pageQuery}&page=1` : `?page=1`) %>">1</a>
+				</li>
+				<li class="disabled">
+					<a href="">...</a>
+				</li>
+				<% for (let i = pagination.pageNumber - 2; i <= parseInt(pagination.pageNumber) + 2 ; i++) { %>
+					<li class="<%= pagination.pageNumber == i ? "active disabled" : "" %>">
+						<a href="<%= pagination.page + (pagination.pageQuery ? `${pagination.pageQuery}&page=${i}` : `?page=${i}`) %>"><%= i %></a>
+					</li>
+				<% } %>
+				<li class="disabled">
+					<a href="">...</a>
+				</li>
+				<li>
+					<a href="<%= pagination.page + (pagination.pageQuery ? `${pagination.pageQuery}&page=${pagination.pagesCount}` : `?page=${pagination.pagesCount}`) %>"><%= pagination.pagesCount %></a>
+				</li>
+			<% } %>
+		<% } %>
+	<% } %>
+</ul>
+<% } %>

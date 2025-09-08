@@ -1,0 +1,74 @@
+<script>
+
+ const USER_STATUSES = {
+    NOT_VERIFIED: 1,
+    ACTIVE: 2,
+    BANNED: 3,
+    DELETED: 4,
+}
+
+const USER_ROLES = {
+     COMPANY: 1,
+     RECRUITER: 2,
+     CUSTOMER: 3,
+     DEV: 7,
+     ADMIN: 8,
+ }
+
+$(document).ready(function () {
+    $('.status').each(function () {
+        const status = parseInt($(this).text());
+        let text;
+        let className;
+        switch (status) {
+            case USER_STATUSES.NOT_VERIFIED:
+                text = 'NOT_VERIFIED';
+                className = 'badge-primary';
+                break;
+            case USER_STATUSES.ACTIVE:
+                text = 'ACTIVE';
+                className = 'badge-success';
+                break;
+            case USER_STATUSES.DELETED:
+                text = 'DELETED';
+                className = 'badge-danger';
+                break;
+            case USER_STATUSES.BANNED:
+                text = 'BANNED';
+                className = 'badge-danger';
+                break;
+        }
+        $(this).html($(`<span class="badge ${className}">${text}</span>`));
+    });
+
+    $('.role').each(function () {
+        const role = parseInt($(this).text());
+        let text;
+        let className;
+        switch (role) {
+            case USER_ROLES.RECRUITER:
+                text = 'RECRUITER';
+                className = 'badge-success';
+                break;
+            case USER_ROLES.COMPANY:
+                text = 'COMPANY';
+                className = 'badge-warning';
+                break;
+            case USER_ROLES.CUSTOMER:
+                text = 'CUSTOMER';
+                className = 'badge-primary';
+                break;
+            case USER_ROLES.DEV:
+                text = 'DEV';
+                className = 'badge-danger';
+                break;
+            case USER_ROLES.ADMIN:
+                text = 'ADMIN';
+                className = 'badge-danger';
+                break;
+        }
+        $(this).html($(`<span class="badge ${className}">${text}</span>`));
+    });
+
+})
+</script>

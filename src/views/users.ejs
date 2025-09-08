@@ -1,0 +1,89 @@
+<html lang="ru">
+    <head>
+        <%- include ('partials/head.ejs') %>
+    </head>
+    <body>
+        <div class="preloader"></div>
+
+        <div id="page-top">
+            <div id="wrapper">
+                <%- include ('partials/sidebar.ejs') %>
+                <div id="content-wrapper" class="d-flex flex-column">
+                    <div id="content">
+                        <%- include ('partials/header.ejs') %>
+
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-xl-12 col-lg-12">
+                                    <div class="card shadow mb-4">
+                                        <div class="card-header py-3">
+                                            <h6 class="m-0 font-weight-bold text-primary">
+                                                <i class="fas fa-users"></i> Users
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-sm-12">
+                                                    <div class="table-responsive">
+                                                        <table
+                                                            class="table table-hover table-striped table-bordered table-patients"
+                                                            width="100%"
+                                                            cellspacing="0"
+                                                        >
+                                                            <thead class="thead-dark">
+                                                                <tr role="row" class="sort">
+                                                                    <th>Id</th>
+                                                                    <th class="sorting" data-name="surname">Name</th>
+                                                                    <th class="sorting" data-name="surname">Status</th>
+                                                                    <th class="sorting" data-name="surname">Role</th>
+                                                                    <th class="sorting">Created</th>
+                                                                    <th></th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <% users.map(u => { %>
+                                                                    <tr>
+                                                                        <td><%= u.id %></td>
+                                                                        <td><%= u.name %> <%= u.surname %></td>
+                                                                        <td class="status"><%= u.status %></td>
+                                                                        <td class="role"><%= u.role %></td>
+                                                                        <td class="date"><%= u.createdAt %></td>
+                                                                        <td>
+                                                                            <a data-user="<%= JSON.stringify(u) %>" href="#" class="user-edit__modal">Edit
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                                <% })%>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                                <div class="col-12">
+                                                    <%- include('partials/pagination') %>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-12"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <%- include('partials/footer') %>
+                </div>
+            </div>
+        </div>
+
+        <a class="scroll-to-top rounded" href="#page-top">
+            <i class="fas fa-angle-up"></i>
+        </a>
+
+        <%- include('modals/logout') %>
+        <%- include('modals/message') %>
+        <%- include('partials/script-utils') %>
+        <%- include('modals/users-edit') %>
+        <%- include('scripts/users') %>
+    </body>
+</html>
