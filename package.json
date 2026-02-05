@@ -4,7 +4,7 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "build": "tsc && tsc-alias && cp -r src/views dist/views",
+        "build": "tsc && tsc-alias && rm -rf dist/views && cp -r src/views dist/views",
         "node": "ts-node -r tsconfig-paths/register ./src/index.ts",
         "start": "nodemon ./dist/index.js",
         "dev": "nodemon --exec ts-node -r tsconfig-paths/register ./src/index.ts",
@@ -13,8 +13,8 @@
         "lint": "tslint -t stylish --project \"tsconfig.json\"",
         "format": "prettier --write \"**/*.ts\" \"**/*.json\" \"**/*.ejs\"",
         "start:prod": "node dist/index.js",
-        "pm2:start": "pm2 start npm --no-automation --name \"start:prod\" -- start",
-        "pm2:restart": "pm2 restart start:prod"
+        "pm2:start": "pm2 start npm --no-automation --name \"rm-admin\" -- start",
+        "pm2:restart": "pm2 restart rm-admin"
     },
     "keywords": [],
     "author": "",
