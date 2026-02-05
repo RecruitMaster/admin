@@ -10,7 +10,7 @@ export default class UsersController {
         const total = await builder.getCount();
         const pagination = paginationHandler(req, total);
         builder
-            .select(['user.id', 'user.name', 'user.surname', 'user.status', 'user.createdAt', 'user.role'])
+            .select(['user.id', 'user.name', 'user.surname', 'user.status', 'user.createdAt', 'user.role', 'user.email'])
             .offset(pagination.offset)
             .limit(pagination.limit)
             .orderBy('user.createdAt', 'DESC');
