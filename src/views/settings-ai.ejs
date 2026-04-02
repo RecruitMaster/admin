@@ -1,0 +1,81 @@
+<html lang="ru">
+    <head>
+        <%- include ('partials/head.ejs') %>
+    </head>
+    <body>
+        <div class="preloader"></div>
+
+        <div id="page-top">
+            <div id="wrapper">
+                <%- include ('partials/sidebar.ejs') %>
+                <div id="content-wrapper" class="d-flex flex-column">
+                    <div id="content">
+                        <%- include ('partials/header.ejs') %>
+
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-xl-12 col-lg-12">
+                                    <div class="card shadow mb-4">
+                                        <div class="card-header py-3">
+                                            <h6 class="m-0 font-weight-bold text-primary">
+                                                <i class="fas fa-cog"></i> AI settings
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <form id="settings">
+                                                        <div class="form-group">
+                                                            <label for="aiParserModel">
+                                                                Ai parser model
+                                                            </label>
+                                                            <input
+                                                                    id="aiParserModel"
+                                                                    name="aiParserModel"
+                                                                    class="form-control"
+                                                                    placeholder="Ai parser model"
+                                                                    value="<%= settings.aiParserModel %>"
+                                                            />
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="aiParserPrompt">
+                                                                Ai parser prompt
+                                                            </label>
+                                                            <textarea
+                                                                    id="aiParserPrompt"
+                                                                    rows="10"
+                                                                    name="aiParserPrompt"
+                                                                    class="form-control"
+                                                                    placeholder="Ai parser prompt"
+                                                            ><%= settings.aiParserPrompt %></textarea>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <div class="alert alert-message"></div>
+                                                        </div>
+                                                        <button type="submit" class="btn btn-primary btn-block">
+                                                            Save settings
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <%- include('partials/footer') %>
+                </div>
+            </div>
+        </div>
+
+        <a class="scroll-to-top rounded" href="#page-top">
+            <i class="fas fa-angle-up"></i>
+        </a>
+
+        <%- include('modals/logout') %>
+        <%- include('modals/message') %>
+        <%- include('partials/script-utils') %>
+        <%- include('scripts/settings') %>
+    </body>
+</html>

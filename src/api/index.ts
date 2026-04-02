@@ -4,6 +4,7 @@ import users from './users/users.route';
 import main from './main/main.route';
 import help from './help/help.route';
 import { checkSessionAndSetUser } from '@/api/auth/auth.middleware';
+import setting from "@/api/settings/settings.route";
 
 const router: Router = Router();
 
@@ -16,6 +17,7 @@ router.get('/', (req, res) => {
 });
 
 router.use('/auth', auth);
+router.use('/settings', checkSessionAndSetUser, setting);
 router.use('/main', checkSessionAndSetUser, main);
 router.use('/help', checkSessionAndSetUser, help);
 router.use('/users', checkSessionAndSetUser, users);
