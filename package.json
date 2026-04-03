@@ -14,7 +14,7 @@
         "format": "prettier --write \"**/*.ts\" \"**/*.json\" \"**/*.ejs\"",
         "start:prod": "node dist/index.js",
         "pm2:start": "pm2 start npm --no-automation --name \"rm-admin\" -- start",
-        "pm2:restart": "pm2 restart rm-admin"
+        "pm2:restart": "npm run build && pm2 restart rm-admin"
     },
     "keywords": [],
     "author": "",
