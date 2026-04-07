@@ -16,4 +16,10 @@ export class SystemSettingEntity {
         name: 'ai_parser_prompt',
     })
     aiParserPrompt?: string;
+
+    @Column('int', {
+        nullable: true,
+        name: 'ai_parser_max_output_tokens',
+    })
+    aiParserMaxOutputTokens?: number;
 }
