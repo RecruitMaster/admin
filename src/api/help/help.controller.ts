@@ -1,12 +1,11 @@
 import { Request, Response } from 'express';
-import userRepository from "@/api/users/users.service";
-import paginationHandler from "@/utils/pagination.util";
-import {ticketMessageRepository, ticketRepository} from "@/api/help/help.service";
-import {Uuid} from "@/common/types/common.type";
+import userRepository from '@/api/users/users.service';
+import paginationHandler from '@/utils/pagination.util';
+import { ticketMessageRepository, ticketRepository } from '@/api/help/help.service';
+import { Uuid } from '@/common/types/common.type';
 
 export default class HelpController {
     public async getAllTicketsPage(req: Request, res: Response) {
-
         const builder = ticketRepository.createQueryBuilder('ticket');
 
         const total = await builder.getCount();
@@ -18,7 +17,7 @@ export default class HelpController {
             .orderBy('ticket.createdAt', 'DESC');
         const tickets = await builder.getMany();
 
-        res.render('tickets', {tickets, pagination});
+        res.render('tickets', { tickets, pagination });
     }
 
     public async getTicketPage(req: Request, res: Response) {
@@ -28,7 +27,7 @@ export default class HelpController {
             },
             relations: ['messages'],
         });
-        return res.render('ticket', {ticket});
+        return res.render('ticket', { ticket });
     }
 
     public async addMessageToTicket(req: Request, res: Response) {
@@ -39,9 +38,6 @@ export default class HelpController {
         });
         res.json({
             message: 'ok',
-        })
+        });
     }
-
 }
-
-

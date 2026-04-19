@@ -41,23 +41,21 @@
                                                             </thead>
                                                             <tbody>
                                                                 <% tickets.map(t => { %>
-                                                                    <tr>
-                                                                        <td><%= t.id %></td>
-                                                                        <td><%= t.title %></td>
-                                                                        <td class="date"><%= t.createdAt %></td>
-                                                                        <td><%= t.messagesCount %></td>
-                                                                        <td>
-                                                                            <a href="/help/<%= t.id %>">Open</a>
-                                                                        </td>
-                                                                    </tr>
+                                                                <tr>
+                                                                    <td><%= t.id %></td>
+                                                                    <td><%= t.title %></td>
+                                                                    <td class="date"><%= t.createdAt %></td>
+                                                                    <td><%= t.messagesCount %></td>
+                                                                    <td>
+                                                                        <a href="/help/<%= t.id %>">Open</a>
+                                                                    </td>
+                                                                </tr>
                                                                 <% })%>
                                                             </tbody>
                                                         </table>
                                                     </div>
                                                 </div>
-                                                <div class="col-12">
-                                                    <%- include('partials/pagination') %>
-                                                </div>
+                                                <div class="col-12"><%- include('partials/pagination') %></div>
                                             </div>
                                             <div class="row">
                                                 <div class="col-12"></div>

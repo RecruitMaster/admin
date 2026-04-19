@@ -7,5 +7,4 @@ const controller = new Controller();
 setting.post('/', controller.saveSettings);
 setting.get('/ai', controller.getAiSettingsPage);
 
-
 export default setting;

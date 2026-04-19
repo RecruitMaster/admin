@@ -18,47 +18,47 @@
                                     <div class="card shadow mb-4">
                                         <div class="card-header py-3">
                                             <h6 class="m-0 font-weight-bold text-primary">
-                                                <i class="fas fa-users"></i> <%= ticket.title %>
+                                                <i class="fas fa-users"></i>
+                                                <%= ticket.title %>
                                             </h6>
                                         </div>
                                         <div class="card-body">
                                             <div class="row">
                                                 <div class="col-12">
                                                     <div class="ticket-card">
-                                                        <div class="ticket-card__user">
-                                                            User
-                                                        </div>
+                                                        <div class="ticket-card__user">User</div>
                                                         <div class="ticket-card__text">
                                                             <span class="nl2br"><%= ticket.description %></span>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <% ticket.messages.map (message => { %>
-                                                    <div class="col-12">
-                                                        <div class="ticket-card">
-                                                            <div class="ticket-card__user">
-                                                                <%= String(message.userId) === String(ticket.userId) ? 'User' : 'Support' %>
-                                                            </div>
-                                                            <div class="ticket-card__text">
-                                                                <span class="nl2br"><%= message.text %></span>
-                                                            </div>
+                                                <div class="col-12">
+                                                    <div class="ticket-card">
+                                                        <div class="ticket-card__user">
+                                                            <%= String(message.userId) === String(ticket.userId) ?
+                                                            'User' : 'Support' %>
+                                                        </div>
+                                                        <div class="ticket-card__text">
+                                                            <span class="nl2br"><%= message.text %></span>
                                                         </div>
                                                     </div>
+                                                </div>
                                                 <% })%>
                                             </div>
                                             <div class="row">
                                                 <div class="col-12">
-                                                    <hr/>
+                                                    <hr />
                                                     <form class="user" id="ticket-add-message">
                                                         <div class="form-group">
                                                             <textarea
-                                                                    rows="4"
-                                                                    name="text"
-                                                                    class="form-control"
-                                                                    placeholder="Your answer"
+                                                                rows="4"
+                                                                name="text"
+                                                                class="form-control"
+                                                                placeholder="Your answer"
                                                             ></textarea>
                                                         </div>
-                                                        <input type="hidden" name="ticketId" value="<%= ticket.id %>"/>
+                                                        <input type="hidden" name="ticketId" value="<%= ticket.id %>" />
                                                         <div class="form-group">
                                                             <div class="alert alert-message"></div>
                                                         </div>

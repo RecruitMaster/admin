@@ -31,14 +31,16 @@ class App {
         this.express.use(cors());
         this.express.use(bodyParser.json());
         this.express.use(bodyParser.urlencoded({ extended: false }));
-        this.express.use(helmet({
-            contentSecurityPolicy: {
-                directives: {
-                    ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-                    "script-src": ["'self'", "'unsafe-inline'", "example.com"],
+        this.express.use(
+            helmet({
+                contentSecurityPolicy: {
+                    directives: {
+                        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+                        'script-src': ["'self'", "'unsafe-inline'", 'example.com'],
+                    },
                 },
-            },
-        }));
+            }),
+        );
         this.express.use(
             session({
                 store: new RedisStore({ client: this.redisClient }),

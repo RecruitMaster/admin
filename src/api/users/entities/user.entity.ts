@@ -103,4 +103,11 @@ export class UserEntity extends AbstractEntity {
 
     @OneToMany(() => TicketEntity, (ticket) => ticket.id)
     tickets?: Relation<TicketEntity>[];
+
+    @Column({
+        name: 'onboarding_questions',
+        type: 'jsonb',
+        nullable: true,
+    })
+    onboardingQuestions?: number[];
 }

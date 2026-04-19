@@ -4,61 +4,35 @@
     </a>
     <hr class="sidebar-divider my-0" />
     <hr class="sidebar-divider" />
-    <% [
-        {
-            tag: 'users',
-            name: 'Users',
-            icon: 'fas fa-users',
-            items: [
-                {
-                    name: 'All users',
-                    url: '/users',
-                }
-            ]
-        },
-        {
-            tag: 'help',
-            name: 'Help tickets',
-            icon: 'fas fa-envelope',
-            items: [
-                {
-                    name: 'All tickets',
-                    url: '/help',
-                }
-            ]
-        },
-        {
-            tag: 'settings',
-            name: 'Settings',
-            icon: 'fas fa-cog',
-            items: [
-                {
-                    name: 'AI',
-                    url: '/settings/ai',
-                }
-            ]
-        },
-    ].map(block => { %>
-        <li class="nav-item">
-            <a
-                    class="nav-link collapsed"
-                    href="#"
-                    data-toggle="collapse"
-                    data-target="#collapse-<%= block.tag %>"
-                    aria-expanded="true"
-                    aria-controls="collapse-<%= block.tag %>"
-            >
-                <i class="<%= block.icon %>"></i>
-                <span><%= block.name %></span>
-            </a>
-            <div id="collapse-<%= block.tag %>" class="collapse" aria-labelledby="collapse-<%= block.tag %>" data-parent="#accordionSidebar">
-                <% block.items?.map(item => { %>
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="<%= item.url %>"><%= item.name %></a>
-                    </div>
-                <% }) %>
+    <% [ { tag: 'users', name: 'Users', icon: 'fas fa-users', items: [ { name: 'All users', url: '/users', } ] }, { tag:
+    'help', name: 'Help tickets', icon: 'fas fa-envelope', items: [ { name: 'All tickets', url: '/help', } ] }, { tag:
+    'settings', name: 'Settings', icon: 'fas fa-cog', items: [ { name: 'AI', url: '/settings/ai', } ] }, ].map(block =>
+    { %>
+    <li class="nav-item">
+        <a
+            class="nav-link collapsed"
+            href="#"
+            data-toggle="collapse"
+            data-target="#collapse-<%= block.tag %>"
+            aria-expanded="true"
+            aria-controls="collapse-<%= block.tag %>"
+        >
+            <i class="<%= block.icon %>"></i>
+            <span><%= block.name %></span>
+        </a>
+        <div
+            id="collapse-<%= block.tag %>"
+            class="collapse"
+            aria-labelledby="collapse-<%= block.tag %>"
+            data-parent="#accordionSidebar"
+        >
+            <% block.items?.map(item => { %>
+            <div class="bg-white py-2 collapse-inner rounded">
+                <a class="collapse-item" href="<%= item.url %>"><%= item.name %></a>
             </div>
-        </li>
+            <% }) %>
+        </div>
+    </li>
     <% }) %>
     <hr class="sidebar-divider" />
     <div class="text-center d-none d-md-inline">

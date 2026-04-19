@@ -35,6 +35,7 @@
                                                                     <th>Id</th>
                                                                     <th class="sorting" data-name="name">Name</th>
                                                                     <th class="sorting" data-name="email">Email</th>
+                                                                    <th data-name="onboardingQuestions">Onboarding questions</th>
                                                                     <th class="sorting" data-name="status">Status</th>
                                                                     <th class="sorting" data-name="role">Role</th>
                                                                     <th class="sorting">Created</th>
@@ -43,26 +44,32 @@
                                                             </thead>
                                                             <tbody>
                                                                 <% users.map(u => { %>
-                                                                    <tr>
-                                                                        <td><%= u.id %></td>
-                                                                        <td><%= u.name %> <%= u.surname %></td>
-                                                                        <td><%= u.email %></td>
-                                                                        <td class="status"><%= u.status %></td>
-                                                                        <td class="role"><%= u.role %></td>
-                                                                        <td class="date"><%= u.createdAt %></td>
-                                                                        <td>
-                                                                            <a data-user="<%= JSON.stringify(u) %>" href="#" class="user-edit__modal">Edit
-                                                                            </a>
-                                                                        </td>
-                                                                    </tr>
+                                                                <tr>
+                                                                    <td><%= u.id %></td>
+                                                                    <td>
+                                                                        <%= u.name %>
+                                                                        <%= u.surname %>
+                                                                    </td>
+                                                                    <td><%= u.email %></td>
+                                                                    <td><%- u.onboardingQuestions?.map(q=> q.text).join('<br/>') %></td>
+                                                                    <td class="status"><%= u.status %></td>
+                                                                    <td class="role"><%= u.role %></td>
+                                                                    <td class="date"><%= u.createdAt %></td>
+                                                                    <td>
+                                                                        <a
+                                                                            data-user="<%= JSON.stringify(u) %>"
+                                                                            href="#"
+                                                                            class="user-edit__modal"
+                                                                            >Edit
+                                                                        </a>
+                                                                    </td>
+                                                                </tr>
                                                                 <% })%>
                                                             </tbody>
                                                         </table>
                                                     </div>
                                                 </div>
-                                                <div class="col-12">
-                                                    <%- include('partials/pagination') %>
-                                                </div>
+                                                <div class="col-12"><%- include('partials/pagination') %></div>
                                             </div>
                                             <div class="row">
                                                 <div class="col-12"></div>

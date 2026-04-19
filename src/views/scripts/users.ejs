@@ -1,56 +1,57 @@
 <script>
+    $(document).ready(function () {
+        // add statuses to modal
+        $('.user-edit__modal').on('click', (e) => {
+            e.preventDefault();
+            const user = $(e.target).data('user');
 
-$(document).ready(function () {
+            const html = Object.entries(USER_STATUSES)
+                .map(([key, value]) => {
+                    return `<option value="${value}" ${value === user.status && 'selected'}>${key}</option>`;
+                })
+                .join('');
 
-    // add statuses to modal
-    $('.user-edit__modal').on('click', (e) => {
-        e.preventDefault();
-        const user = $(e.target).data('user');
+            const modal = $('#userEditModal');
 
-        const html = Object.entries(USER_STATUSES).map(([key, value]) => {
-            return `<option value="${value}" ${value === user.status && 'selected'}>${key}</option>`;
-        }).join('');
+            modal.find('select').html(html);
+            modal.find("[name='id']").val(user.id);
+            modal.modal('show');
+        });
 
-        const modal = $('#userEditModal');
+        $('#userEditModal form').on('submit', function (e) {
+            e.preventDefault();
+            let _this = $(this);
+            let button = _this.find("button[type='submit']");
 
-        modal.find('select').html(html);
-        modal.find("[name='id']").val(user.id);
-        modal.modal('show');
-    })
+            let check = checkEmptyFormFields(_this, _this.find('input'));
 
-    $('#userEditModal form').on('submit', function (e) {
-        e.preventDefault();
-        let _this = $(this);
-        let button = _this.find("button[type='submit']");
-
-        let check = checkEmptyFormFields(
-            _this,
-            _this.find("input")
-        );
-
-        if (!check) {
-            return false;
-        }
-
-        const data = _this.serialize();
-
-        $.ajax({  url: "/users",  method: "PUT",   data: data}).done((result) => {
-            if (result.message !== 'ok') {
-                _this.find(".alert-message").addClass("alert-danger").text(result.message).css("display", "block");
-                button.attr("disabled", false);
-            } else {
-                _this.find(".alert-message").addClass("alert-success").text("Success").css("display", "block");
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
+            if (!check) {
+                return false;
             }
 
-        }).fail((err)=> {
-            _this.find(".alert-message").addClass("alert-danger").text("Server error").css("display", "block");
-            button.attr("disabled", false);
-            console.log(err);
-        });
-    })
+            const data = _this.serialize();
 
-})
+            $.ajax({ url: '/users', method: 'PUT', data: data })
+                .done((result) => {
+                    if (result.message !== 'ok') {
+                        _this
+                            .find('.alert-message')
+                            .addClass('alert-danger')
+                            .text(result.message)
+                            .css('display', 'block');
+                        button.attr('disabled', false);
+                    } else {
+                        _this.find('.alert-message').addClass('alert-success').text('Success').css('display', 'block');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                })
+                .fail((err) => {
+                    _this.find('.alert-message').addClass('alert-danger').text('Server error').css('display', 'block');
+                    button.attr('disabled', false);
+                    console.log(err);
+                });
+        });
+    });
 </script>

@@ -1,4 +1,4 @@
-import {Request} from "express";
+import { Request } from 'express';
 
 export type Pagination = {
     page: string;
@@ -7,17 +7,16 @@ export type Pagination = {
     pageQuery: string;
     offset: number;
     limit: number;
-}
+};
 
 type PaginationOptions = {
     limit?: number;
-}
+};
 
 export default (req: Request, total: number, options?: PaginationOptions): Pagination => {
-
     const limit = options?.limit || 10;
 
-    const pagination:Pagination  = {
+    const pagination: Pagination = {
         page: '',
         pageNumber: 1,
         pagesCount: 0,
@@ -46,4 +45,4 @@ export default (req: Request, total: number, options?: PaginationOptions): Pagin
     pagination.page = splitUrl[0];
     pagination.pagesCount = total > limit ? Math.ceil(total / limit) : 0;
     return pagination;
-}
+};

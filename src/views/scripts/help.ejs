@@ -1,40 +1,39 @@
 <script>
+    $(document).ready(function () {
+        $('#ticket-add-message').on('submit', function (e) {
+            e.preventDefault();
+            let _this = $(this);
+            let button = _this.find("button[type='submit']");
 
-$(document).ready(function () {
+            let check = checkEmptyFormFields(_this, _this.find('input'));
 
-    $('#ticket-add-message').on('submit', function (e) {
-        e.preventDefault();
-        let _this = $(this);
-        let button = _this.find("button[type='submit']");
-
-        let check = checkEmptyFormFields(
-            _this,
-            _this.find("input")
-        );
-
-        if (!check) {
-            return false;
-        }
-
-        const data = _this.serialize();
-
-        $.ajax({  url: "/help/message",  method: "POST",   data: data}).done((result) => {
-            if (result.message !== 'ok') {
-                _this.find(".alert-message").addClass("alert-danger").text(result.message).css("display", "block");
-                button.attr("disabled", false);
-            } else {
-                _this.find(".alert-message").addClass("alert-success").text("Success").css("display", "block");
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
+            if (!check) {
+                return false;
             }
 
-        }).fail((err)=> {
-            _this.find(".alert-message").addClass("alert-danger").text("Server error").css("display", "block");
-            button.attr("disabled", false);
-            console.log(err);
-        });
-    })
+            const data = _this.serialize();
 
-})
+            $.ajax({ url: '/help/message', method: 'POST', data: data })
+                .done((result) => {
+                    if (result.message !== 'ok') {
+                        _this
+                            .find('.alert-message')
+                            .addClass('alert-danger')
+                            .text(result.message)
+                            .css('display', 'block');
+                        button.attr('disabled', false);
+                    } else {
+                        _this.find('.alert-message').addClass('alert-success').text('Success').css('display', 'block');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                })
+                .fail((err) => {
+                    _this.find('.alert-message').addClass('alert-danger').text('Server error').css('display', 'block');
+                    button.attr('disabled', false);
+                    console.log(err);
+                });
+        });
+    });
 </script>
