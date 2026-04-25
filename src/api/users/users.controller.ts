@@ -19,7 +19,9 @@ export default class UsersController {
                 'user.role',
                 'user.email',
                 'user.onboardingQuestions',
+                'user.onboardingStep',
             ])
+            .loadRelationCountAndMap('user.countCandidates', 'user.candidates')
             .offset(pagination.offset)
             .limit(pagination.limit)
             .orderBy('user.createdAt', 'DESC');

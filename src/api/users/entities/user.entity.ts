@@ -18,6 +18,7 @@ import {
 import { LANGUAGES, UserSettings } from '@/api/users/types/user.types';
 import { TicketEntity } from '@/api/help/entities/ticket.entity';
 import { USER_STATUSES } from '@/api/users/types/user.constants';
+import { CandidateEntity } from '@/api/candidate/enteties/candidate.entity';
 
 @Entity('user')
 export class UserEntity extends AbstractEntity {
@@ -110,4 +111,13 @@ export class UserEntity extends AbstractEntity {
         nullable: true,
     })
     onboardingQuestions?: number[];
+
+    @Column('int', {
+        name: 'onboarding_step',
+        nullable: true,
+    })
+    onboardingStep?: number;
+
+    @OneToMany(() => CandidateEntity, (candidate) => candidate.recruiter)
+    candidates?: Relation<CandidateEntity>[];
 }
