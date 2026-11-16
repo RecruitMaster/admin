@@ -2,6 +2,7 @@ export enum USER_ROLES {
     COMPANY = 1,
     RECRUITER = 2,
     CUSTOMER = 3,
+    CANDIDATE = 4,
     DEV = 7,
     ADMIN = 8,
 }
