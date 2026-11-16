@@ -273,7 +273,8 @@ def deploy(commit):
         state['phase'] = 'installed'
         statefile.write_text(json.dumps(state))
         print(f'INSTALLED {commit}; PM2 ID {p["pm_id"]}; HTTPS login and new logs verified.', flush=True)
-        print(f'Backup: {old}; rollback: bash scripts/deploy-admin.sh rollback {folder}', flush=True)
+        launcher = Path(__file__).resolve().with_suffix('.sh')
+        print(f'Backup: {old}; rollback: bash {launcher} rollback {folder}', flush=True)
     except BaseException:
         if moved:
             restore(folder, automatic=True)
