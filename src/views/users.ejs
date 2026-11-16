@@ -35,6 +35,7 @@
                                                                     <th>Id</th>
                                                                     <th class="sorting" data-name="name">Name</th>
                                                                     <th class="sorting" data-name="email">Email</th>
+                                                                    <th>Профиль рекрутера</th>
                                                                     <th data-name="onboardingQuestions">Onb. quest.</th>
                                                                     <th data-name="onboardingStep">Onb. step.</th>
                                                                     <th data-name="countCandidates">Cand.</th>
@@ -53,6 +54,7 @@
                                                                         <%= u.surname %>
                                                                     </td>
                                                                     <td><%= u.email %></td>
+                                                                    <td><%- include('partials/recruiter-card', { u }) %></td>
                                                                     <td>
                                                                         <%- u.onboardingQuestions?.map(q=>
                                                                         q.text).join('<br />') %>
@@ -101,5 +103,6 @@
         <%- include('partials/script-utils') %>
         <%- include('modals/users-edit') %>
         <%- include('scripts/users') %>
+        <%- include('modals/personal-mail') %>
     </body>
 </html>

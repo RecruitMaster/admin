@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import userRepository, { onboardingQuestionRepository } from '@/api/users/users.service';
 import paginationHandler from '@/utils/pagination.util';
 import { In } from 'typeorm';
+import AppDataSource from '@/config/database';
+import { randomBytes } from 'crypto';
 
 export default class UsersController {
     public async getUsersPage(req: Request, res: Response) {
@@ -27,11 +29,25 @@ export default class UsersController {
             .orderBy('user.createdAt', 'DESC');
         const users = await builder.getMany();
 
+        if (!req.session.personalMailToken) req.session.personalMailToken = randomBytes(32).toString('hex');
+        const ids = users.filter(u => u.role === 2).map(u => u.id);
+        const profiles = ids.length ? await AppDataSource.query(`
+            SELECT u.id, u.image, u.position_name, u.about, u.recruitment_specializations,
+                u.hide_public_profile, c.name AS city, co.name_ru AS country,
+                a.slug
+            FROM "user" u
+            LEFT JOIN cities c ON c.id = u.city_id
+            LEFT JOIN countries co ON co.id = COALESCE(u.country_id, c.country_id)
+            LEFT JOIN recruiter_profile_address a ON a.user_id = u.id AND a.is_current = true
+            WHERE u.id = ANY($1::uuid[])`, [ids]) : [];
+        const profileMap = new Map(profiles.map(p => [p.id, p]));
         res.render('users', {
+            personalMailToken: req.session.personalMailToken,
             users: await Promise.all(
                 users.map(async (user) => {
                     return {
                         ...user,
+                        recruiterProfile: profileMap.get(user.id),
                         onboardingQuestions: user.onboardingQuestions
                             ? await onboardingQuestionRepository.find({
                                   where: {
