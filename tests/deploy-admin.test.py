@@ -28,10 +28,15 @@ class DeploymentTests(unittest.TestCase):
         git('clone', '--bare', PROJECT, bare)
         git('--git-dir', bare, 'update-ref', 'refs/heads/main', self.commit)
         self.live = self.root / 'admin'
-        git('clone', '--branch', 'main', bare, self.live)
-        git('-C', self.live, 'checkout', '--detach', m.BASE)
+        old_remote = self.root / 'old-remote.git'
+        git('init', '--bare', old_remote)
+        git('-C', PROJECT, 'push', old_remote, f'{m.BASE}:refs/heads/main')
+        git('clone', '--no-local', '--depth=1', '--branch', 'main', old_remote, self.live)
+        missing = subprocess.run(['git', '-C', str(self.live), 'cat-file', '-e', self.commit],
+                                 capture_output=True)
+        self.assertNotEqual(missing.returncode, 0, 'Fixture must lack new release objects')
         for name in m.ALLOWED - {'package-lock.json'}:
-            (self.live / name).write_bytes(git('-C', self.live, 'show', f'{m.ROLE}:{name}'))
+            (self.live / name).write_bytes(git('-C', PROJECT, 'show', f'{m.ROLE}:{name}'))
         lock = self.live / 'package-lock.json'
         data = json.loads(lock.read_text())
         data['name'] = 'admin'
@@ -130,7 +135,7 @@ class DeploymentTests(unittest.TestCase):
         data['lockfileVersion'] = 999
         (self.live / 'package-lock.json').write_text(json.dumps(data))
         with self.assertRaisesRegex(RuntimeError, 'beyond the top-level name'):
-            m.verify_server(self.live, self.commit)
+            m.verify_server(self.live, self.commit, PROJECT)
 
     def test_new_log_errors_are_rejected(self):
         offsets = m.baseline_logs(self.p)

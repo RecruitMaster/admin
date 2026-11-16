@@ -152,7 +152,7 @@ def lock_changes(repo, candidate):
     require(original == actual, 'Server lockfile contains changes beyond the top-level name')
 
 
-def verify_server(repo, candidate):
+def verify_server(repo, candidate, reference):
     require(git(repo, 'rev-parse', 'HEAD').decode().strip() in (BASE, HEAD, candidate),
             'Unexpected production Git HEAD; review before deployment')
     require(not git(repo, 'diff', '--name-only', '--diff-filter=U').strip(), 'Unmerged server files')
@@ -160,7 +160,7 @@ def verify_server(repo, candidate):
     require(dirty <= ALLOWED, 'Unexpected tracked production changes; preserved, deployment aborted')
     for name in dirty - {'package-lock.json'}:
         actual = (repo / name).read_bytes()
-        options = [git(repo, 'show', f'{ref}:{name}') for ref in (BASE, ROLE, HEAD, candidate)]
+        options = [git(reference, 'show', f'{ref}:{name}') for ref in (BASE, ROLE, HEAD, candidate)]
         require(actual in options, f'Existing changes in {name} differ from known releases')
     if 'package-lock.json' in dirty:
         lock_changes(repo, candidate)
@@ -210,7 +210,7 @@ def deploy(commit):
     require(not git(stage, 'ls-tree', '-r', '--name-only', commit, '.github/workflows').strip(),
             'GitHub Actions found: exclude concurrent deployment before proceeding')
     git(stage, 'checkout', '--detach', commit)
-    drift = verify_server(LIVE, commit)
+    drift = verify_server(LIVE, commit, stage)
     (folder / 'server-changes.private.patch').write_bytes(git(LIVE, 'diff', 'HEAD'))
     (folder / 'server-status.private').write_bytes(git(LIVE, 'status', '--porcelain=v1', '--untracked-files=all'))
     # Full independent copy includes ignored/private files, .git, dist and dependencies.
@@ -241,7 +241,7 @@ def deploy(commit):
     require(not git(stage, 'status', '--porcelain', '--untracked-files=no').strip(), 'Build modified tracked release files')
     # Ensure production did not change while the isolated build was running.
     require(signature(process()) == expected, 'PM2 changed during preparation')
-    require(verify_server(LIVE, commit) == drift, 'Production tracked file status changed')
+    require(verify_server(LIVE, commit, stage) == drift, 'Production tracked file status changed')
     require(git(LIVE, 'diff', 'HEAD') == (folder / 'server-changes.private.patch').read_bytes(),
             'Production changes changed during preparation')
     require((LIVE / '.env').read_bytes() == (snapshot / '.env').read_bytes(), 'Private settings changed during build')
