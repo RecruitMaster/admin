@@ -1,0 +1,15 @@
+<% if (u.role === 2 && u.recruiterProfile) { const p = u.recruiterProfile;
+const published = p.hide_public_profile !== true && [1,2].includes(u.status);
+const photo = typeof p.image === 'string' && /^[a-zA-Z0-9_.-]+$/.test(p.image) ? 'https://lk.recruitmaster.net/uploads/' + encodeURIComponent(p.image) : null; %>
+<details class="rm-profile">
+    <summary><span class="rm-profile-state <%= published ? 'is-public' : '' %>"><%= published ? 'Опубликован' : 'Не опубликован' %></span><span>Данные профиля ▾</span></summary>
+    <div class="rm-profile-body">
+        <div class="rm-profile-person"><% if (photo) { %><img src="<%= photo %>" alt="Фото рекрутера" loading="lazy"><% } else { %><span class="rm-profile-avatar">Фото не добавлено</span><% } %><strong><%= u.name %> <%= u.surname %></strong></div>
+        <dl><dt>Страна</dt><dd><%= p.country || 'Не указано' %></dd><dt>Город</dt><dd><%= p.city || 'Не указано' %></dd><dt>Должность</dt><dd><%= p.position_name || 'Не указано' %></dd></dl>
+        <div class="rm-profile-label">О себе</div><p class="rm-profile-about"><%= p.about || 'Не указано' %></p>
+        <div class="rm-profile-label">Подбирает на должности</div><div class="rm-profile-tags"><% const roles = Array.isArray(p.recruitment_specializations) ? p.recruitment_specializations : []; if (!roles.length) { %>Не указано<% } roles.forEach(role => { %><span><%= role %></span><% }) %></div>
+        <% if (published) { %><a class="rm-profile-link" href="https://lk.recruitmaster.net/hr/<%= encodeURIComponent(p.slug || u.id) %>" target="_blank" rel="noopener noreferrer">Открыть публичный профиль ↗</a><% } %>
+    </div>
+</details>
+<% if ([1,2].includes(u.status)) { %><button type="button" class="btn btn-sm rm-write-mail" data-id="<%= u.id %>" data-email="<%= u.email %>" data-name="<%= [u.name,u.surname].filter(Boolean).join(' ') %>">✉ Написать письмо</button><% } %>
+<% } else { %><span class="text-muted">—</span><% } %>

@@ -3,6 +3,8 @@ import { USER_ROLES_REGISTER } from '@/api/users/types/user.constants';
 
 declare module 'express-session' {
     export interface SessionData {
+        personalMailToken?: string;
+        personalMailLastSent?: number;
         user: {
             id: Uuid;
             name: string;
