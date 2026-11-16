@@ -37,6 +37,7 @@ class App {
                     directives: {
                         ...helmet.contentSecurityPolicy.getDefaultDirectives(),
                         'script-src': ["'self'", "'unsafe-inline'", 'example.com'],
+                        'img-src': ["'self'", 'data:', 'https://lk.recruitmaster.net'],
                     },
                 },
             }),
