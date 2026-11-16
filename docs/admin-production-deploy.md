@@ -3,7 +3,7 @@
 PR #1 объединён в main. Проверенный коммит приложения:
 `1b0e6e0b8a332225152e11523c13528380e9f663` (включает `45384b8`).
 Этот документ и установщик сами по себе **не подтверждают деплой на production**.
-Из облачной среды SSH к `89.108.113.137:22` ответил `Connection refused`.
+Из облачной среды SSH к production ответил `Connection refused` до авторизации.
 
 ## Что делает установщик
 
@@ -50,12 +50,13 @@ Python 3.9+, Git, npm, PM2 и доступ сервера к GitHub/npm. Исп�
 
 ## Запуск с Windows PowerShell
 
-Точные команды с закреплённым SHA установщика выдаются при его публикации.
+Точные команды с закреплённым SHA установщика и адресом SSH выдаются приватно в чате.
+В примерах ниже `<SSH_TARGET>` — ваш production SSH-адрес.
 Скачайте установщик в отдельный локальный каталог, передайте оба файла через
 `scp` в новый каталог `/root/rm-admin-deploy-<дата>` и запустите:
 
 ```powershell
-ssh root@89.108.113.137 "bash /root/rm-admin-deploy-<дата>/deploy-admin.sh deploy 1b0e6e0b8a332225152e11523c13528380e9f663"
+ssh <SSH_TARGET> "bash /root/rm-admin-deploy-<дата>/deploy-admin.sh deploy 1b0e6e0b8a332225152e11523c13528380e9f663"
 ```
 
 Пароль SSH, если потребуется, вводится только в запрос вашего SSH-клиента.
@@ -72,7 +73,7 @@ ssh root@89.108.113.137 "bash /root/rm-admin-deploy-<дата>/deploy-admin.sh d
 Используйте **тот же загруженный установщик**, который остаётся вне приложения:
 
 ```powershell
-ssh root@89.108.113.137 "bash /root/rm-admin-deploy-<дата>/deploy-admin.sh rollback /home/rm/admin-deployments/<идентификатор>"
+ssh <SSH_TARGET> "bash /root/rm-admin-deploy-<дата>/deploy-admin.sh rollback /home/rm/admin-deployments/<идентификатор>"
 ```
 
 Вместо идентификатора подставьте полный путь, напечатанный при установке.
