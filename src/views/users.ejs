@@ -22,6 +22,7 @@
                                             </h6>
                                         </div>
                                         <div class="card-body">
+                                            <%- include('partials/user-search', { filters: locals.filters || { search: '', role: '' }, searchRoles: locals.searchRoles || [], total: locals.total ?? users.length }) %>
                                             <div class="row">
                                                 <div class="col-sm-12">
                                                     <div class="table-responsive">
@@ -46,6 +47,9 @@
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
+                                                                <% if (!users.length) { %>
+                                                                <tr><td colspan="11">Ничего не найдено. Измените запрос или роль пользователя.</td></tr>
+                                                                <% } %>
                                                                 <% users.map(u => { %>
                                                                 <tr>
                                                                     <td><%= u.id %></td>

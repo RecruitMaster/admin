@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+set +x
+set -euo pipefail
+umask 077
+for init in "${NVM_DIR:-$HOME/.nvm}/nvm.sh" /root/.nvm/nvm.sh /home/rm/.nvm/nvm.sh; do
+ if [[ -r "$init" ]]; then set +u; . "$init"; set -u; break; fi
+done
+python3 - "$@" <<'ADMIN_SEARCH_INSTALL'
+import base64,gzip,hashlib,json,os,shutil,subprocess,sys,tempfile,time,signal,fcntl
+from pathlib import Path
+from urllib.request import urlopen,Request
+PATCH=base64.b64decode('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')
+PATCH=gzip.decompress(PATCH)
+if hashlib.sha256(PATCH).hexdigest()!='065f8e5e75bbb3f7e7cc57cc76211826ceb0ecc5f560dd6b002dffaf4249938a':raise SystemExit('Installer checksum mismatch')
+FILES=['src/api/users/users.controller.ts','src/api/users/user-search.ts','src/views/users.ejs','src/views/partials/user-search.ejs']
+RELEASE='admin-user-search-v1'
+def run(args,**kwargs):return subprocess.run(args,check=True,**kwargs)
+def process():
+    rows=json.loads(run(['pm2','jlist'],capture_output=True,text=True,timeout=15).stdout)
+    found=[]
+    for row in rows:
+        env=row.get('pm2_env',{});root=Path(env.get('pm_cwd','/nonexistent'))
+        if (root/'src/api/users/users.controller.ts').is_file() and (root/'src/views/users.ejs').is_file() and (root/'package.json').is_file():
+            package=json.loads((root/'package.json').read_text())
+            if all(key in package.get('dependencies',{}) for key in ['express','ejs','typeorm']):
+                found.append({'id':row['pm_id'],'name':row['name'],'root':str(root.resolve()),'status':env.get('status'),'uptime':env.get('pm_uptime')})
+    if len(found)!=1 or found[0]['status']!='online':raise RuntimeError('Expected exactly one online PM2 admin app. Nothing installed.')
+    return found[0]
+def check_patch(root,patch,reverse=False):
+    cmd=['git','-C',str(root),'apply']+(['--reverse'] if reverse else [])+['--check',str(patch)]
+    return subprocess.run(cmd,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0
+def healthy():
+    url=os.environ.get('RM_ADMIN_HEALTH_URL','https://admin.recruitmaster.net/auth/login')
+    for _ in range(15):
+        try:
+            with urlopen(Request(url,headers={'Cache-Control':'no-cache'}),timeout=3) as response:
+                if response.status==200:return
+        except Exception:pass
+        time.sleep(1)
+    raise RuntimeError('Admin login page is not responding')
+def write_source(root,name,content,attrs):
+    dest=root/name;dest.parent.mkdir(parents=True,exist_ok=True)
+    temp=dest.with_name('.'+dest.name+'.admin-search-tmp');temp.write_bytes(content)
+    os.chmod(temp,attrs.st_mode & 0o777 if attrs else 0o644)
+    if os.geteuid()==0:
+        owner=attrs or dest.parent.stat();os.chown(temp,owner.st_uid,owner.st_gid)
+    os.replace(temp,dest)
+def main():
+    if sys.argv[1:] not in ([],['--check']):raise RuntimeError('Usage: bash installer [--check]')
+    def interrupted(*_):raise RuntimeError('Installation interrupted')
+    for sig in [signal.SIGINT,signal.SIGTERM,signal.SIGHUP]:signal.signal(sig,interrupted)
+    state=process();root=Path(state['root'])
+    if not (root/'node_modules').is_dir() or not (root/'dist/index.js').is_file() or (root/'dist').is_symlink():raise RuntimeError('Existing regular admin build and dependencies required')
+    lock=(root/'.admin-user-search-install.lock').open('a');fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+    stage=Path(tempfile.mkdtemp(prefix='.admin-search-build-',dir=root.parent));backup=None;source_changed=False;dist_moved=False
+    before={}
+    try:
+        patch=stage/'search.patch';patch.write_bytes(PATCH)
+        if check_patch(root,patch):pending=True
+        elif check_patch(root,patch,True):pending=False
+        else:raise RuntimeError('Admin source differs from reviewed patch. Nothing installed; do not force it.')
+        for name in FILES:
+            file=root/name
+            if file.is_symlink():raise RuntimeError('Symlink source is not supported: '+name)
+            before[name]=(file.read_bytes(),file.stat()) if file.is_file() else (None,None)
+        healthy()
+        print('Admin source compatibility and current health passed: '+state['name'],flush=True)
+        if sys.argv[1:]==['--check']:
+            print('Check only: no source/build changes, database requests or restarts.');return
+        if not pending and (root/'dist/.admin-user-search-release').is_file() and (root/'dist/.admin-user-search-release').read_text()==RELEASE:
+            print('Already published; no changes.');return
+        shutil.copytree(root/'src',stage/'src')
+        for file in [root/'package.json',*root.glob('tsconfig*.json')]:shutil.copy2(file,stage/file.name)
+        (stage/'node_modules').symlink_to(root/'node_modules',target_is_directory=True)
+        if pending:run(['git','apply',str(patch)],cwd=stage)
+        print('Building admin in a separate directory; current app stays running...',flush=True)
+        run(['npm','run','build'],cwd=stage,timeout=600)
+        for name in ['index.js','api/users/user-search.js','views/partials/user-search.ejs']:
+            if not (stage/'dist'/name).is_file():raise RuntimeError('Missing admin build output: '+name)
+        (stage/'dist/.admin-user-search-release').write_text(RELEASE)
+        for file in [stage/'dist',*(stage/'dist').rglob('*')]:file.chmod(0o755 if file.is_dir() else 0o644)
+        if process()!=state:raise RuntimeError('Admin process changed during build; nothing installed')
+        for name,(content,_) in before.items():
+            current=root/name
+            if (current.read_bytes() if current.is_file() else None)!=content:raise RuntimeError('Source changed during build; nothing installed')
+        healthy()
+        backup=Path(tempfile.mkdtemp(prefix='.before-admin-user-search-',dir=root.parent));backup.chmod(0o700)
+        (backup/'manifest.json').write_text(json.dumps({'root':str(root),'processId':state['id'],'files':{k:v[0] is not None for k,v in before.items()}}))
+        for name,(content,_) in before.items():
+            if content is not None:
+                target=backup/'source'/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(root/name,target)
+        source_changed=True
+        for name,(_,attrs) in before.items():write_source(root,name,(stage/name).read_bytes(),attrs)
+        (root/'dist').rename(backup/'dist');dist_moved=True
+        (stage/'dist').rename(root/'dist')
+        run(['pm2','restart',str(state['id'])],capture_output=True,timeout=40)
+        healthy()
+        active=process()
+        if any(active[k]!=state[k] for k in ['id','root','name']):raise RuntimeError('Admin process identity changed')
+        print('Published: admin candidate/recruiter search. Backup: '+str(backup),flush=True)
+        print('Open admin.recruitmaster.net/users. No migrations, email sending, ATS/backend restarts or dependency installation.',flush=True)
+    except BaseException:
+        if source_changed and backup:
+            for name,(content,attrs) in before.items():
+                if content is None:
+                    if (root/name).is_file():(root/name).unlink()
+                else:write_source(root,name,content,attrs)
+            if dist_moved:
+                if (root/'dist').exists():shutil.rmtree(root/'dist')
+                shutil.copytree(backup/'dist',root/'dist',copy_function=shutil.copy2)
+            run(['pm2','restart',str(state['id'])],capture_output=True,timeout=40)
+            print('Previous admin source/build restored. Backup: '+str(backup),flush=True)
+        raise
+    finally:shutil.rmtree(stage,ignore_errors=True)
+try:main()
+except Exception as error:print('Admin search not installed: '+str(error),file=sys.stderr);sys.exit(1)
+
+ADMIN_SEARCH_INSTALL
