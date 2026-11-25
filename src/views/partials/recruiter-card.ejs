@@ -13,3 +13,5 @@ const photo = typeof p.image === 'string' && /^[a-zA-Z0-9_.-]+$/.test(p.image) ?
 </details>
 <% if ([1,2].includes(u.status)) { %><button type="button" class="btn btn-sm rm-write-mail" data-id="<%= u.id %>" data-email="<%= u.email %>" data-name="<%= [u.name,u.surname].filter(Boolean).join(' ') %>">✉ Написать письмо</button><% } %>
 <% } else { %><span class="text-muted">—</span><% } %>
+
+<% if(u.role===2){ %><a class="btn btn-sm btn-outline-success mt-2" href="/users/<%= encodeURIComponent(u.id) %>/activity">Активность и журнал действий</a><% } %>
