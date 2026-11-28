@@ -5,6 +5,7 @@ import main from './main/main.route';
 import help from './help/help.route';
 import { checkSessionAndSetUser } from '@/api/auth/auth.middleware';
 import setting from '@/api/settings/settings.route';
+import seo from './seo/seo.route';
 
 const router: Router = Router();
 
@@ -21,5 +22,6 @@ router.use('/settings', checkSessionAndSetUser, setting);
 router.use('/main', checkSessionAndSetUser, main);
 router.use('/help', checkSessionAndSetUser, help);
 router.use('/users', checkSessionAndSetUser, users);
+router.use('/seo', checkSessionAndSetUser, seo);
 
 export default router;

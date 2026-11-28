@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ru"><head><%- include('partials/head.ejs') %><link rel="stylesheet" href="/css/seo-dashboard.css"></head>
+<body><div id="page-top"><div id="wrapper"><%- include('partials/sidebar.ejs') %><div id="content-wrapper" class="d-flex flex-column"><div id="content"><%- include('partials/header.ejs') %>
+<main class="container-fluid seo-dashboard">
+<div class="seo-heading"><div><p class="seo-eyebrow">recruitmaster.net</p><h1>Индексация сайта</h1><p>Страницы в sitemap, уведомления и данные поисковых систем.</p></div><a class="btn btn-outline-primary" href="/seo">Обновить экран</a></div>
+<% if(message==='yandex_connected'){ %><div class="alert alert-success" role="status">Доступ к Яндекс.Вебмастеру проверен и сохранён. Данные появятся после очередного обновления.</div><% } %>
+<% if(message==='yandex_disconnected'){ %><div class="alert alert-info" role="status">Яндекс отключён. Сохранённые результаты показывают дату последней проверки.</div><% } %>
+<% if(message==='yandex_failed'){ %><div class="alert alert-danger" role="alert">Не удалось подключить Яндекс. Проверьте токен с правом webmaster:hostinfo и подтверждение сайта https://recruitmaster.net/ в Вебмастере. Токен не сохранён.</div><% } %>
+<% if(!data){ %><div class="alert alert-info"><%= error==='snapshot_pending'?'Ожидаем первый сбор данных. После установки это может занять несколько минут.':'Данные временно недоступны. Проверьте работу сборщика SEO.' %></div><% } %>
+<% if(stale){ %><div class="alert alert-warning">Обновление задерживается. Ниже сохранённые данные от <%= date(data.generatedAt) %>.</div><% } %>
+<% if(data){ const s=data.summary; %>
+<div class="seo-kpis">
+<section class="seo-kpi"><span>В sitemap</span><strong><%= s.total %></strong><small><%= s.jobs %> вакансий · <%= s.profiles %> профилей · <%= s.other %> других страниц</small></section>
+<section class="seo-kpi"><span>Google · в индексе</span><strong><%= s.googleIndexed %></strong><small><%= s.googleNotIndexed %> вне индекса · <%= s.googleUnknown %> ещё без результата</small></section>
+<section class="seo-kpi"><span>Яндекс · найдены в поиске</span><strong><%= data.yandexReport?s.yandexInSearch:'—' %></strong><small><%= data.yandexReport?'Совпадения с выборкой Вебмастера':'Подключите Яндекс.Вебмастер' %></small></section>
+<section class="seo-kpi seo-kpi-warning"><span>Вакансии без нужных данных</span><strong><%= s.problems %></strong><small><a href="/seo?problems=1">Открыть список и причины →</a></small></section>
+</div>
+<p class="seo-meta">Обновлено: <%= date(data.generatedAt) %>, московское время. Сбор каждые 15 минут. Google: до 50 проверок за проход, повторная проверка примерно раз в сутки.</p>
+<div class="seo-connections">
+<section class="seo-panel"><h2>Google Search Console</h2><p><%= ({ready:'Доступ работает',paused:'Пауза перед повторной попыткой',error:'Есть ошибка доступа или проверки',setup_required:'Нужна настройка доступа'})[data.connections.google.status]||'Ожидаем проверку' %></p>
+<% if(data.connections.google.code){ %><p class="seo-code"><%= data.connections.google.code %></p><% } %>
+<% if(data.connections.google.status!=='ready'){ %><a href="https://console.cloud.google.com/apis/library/searchconsole.googleapis.com?project=recruit-master-ads" target="_blank" rel="noopener noreferrer">Открыть настройки Search Console API</a><% } %>
+<p>Проверок сегодня: <%= data.googleBudget.attempts %> / 1000. Сутки квоты считаются по тихоокеанскому времени.</p>
+</section>
+<section class="seo-panel"><h2>Уведомления о вакансиях</h2><% if(data.worker){ %><p>Уведомления приняты для <strong><%= data.worker.totalAccepted %></strong> вакансий.</p><p>В последнем проходе: <%= data.worker.accepted %> · В очереди: <%= data.worker.pending %></p><p>Последний проход: <%= date(data.worker.finishedAt) %>.</p><% }else{ %><p>Состояние службы пока недоступно.</p><% } %><p>Принятое уведомление и наличие в sitemap не подтверждают индексацию.</p></section>
+</div>
+<% if(data.connections.catalogue.status==='error'){ %><div class="alert alert-warning">Не удалось обновить сведения о вакансиях. Список недостающих полей может быть неполным.</div><% } %>
+<details class="seo-panel"><summary>Файлы sitemap: <%= data.sitemaps.length %></summary><p><a href="https://recruitmaster.net/sitemap.xml" target="_blank" rel="noopener noreferrer">Открыть корневой sitemap.xml</a></p><div class="seo-map-list"><% data.sitemaps.forEach(m=>{ %><div><a href="<%= m.url %>" target="_blank" rel="noopener noreferrer"><%= m.url.replace('https://recruitmaster.net/','') %></a><span><%= m.count %> адресов</span></div><% }) %></div></details>
+<% } %>
+<details class="seo-panel" <%= !yandexConfigured?'open':'' %>><summary>Яндекс.Вебмастер · <%= yandexConfigured?'токен сохранён':'подключить' %></summary>
+<% if(yandexConfigured){ %><p>Токен хранится на сервере и не отображается в браузере.</p><% if(data?.connections.yandex.code){ %><p class="seo-code"><%= data.connections.yandex.code %></p><% } %><form action="/seo/yandex/disconnect" method="post"><input type="hidden" name="csrf" value="<%= csrf %>"><button class="btn btn-outline-secondary">Отключить Яндекс</button></form><% }else{ %>
+<p>Получите OAuth-токен для API Яндекс.Вебмастера с правом <code>webmaster:hostinfo</code>. Сайт https://recruitmaster.net/ должен быть подтверждён в этом аккаунте.</p><p><a href="https://yandex.ru/dev/webmaster/doc/ru/tasks/how-to-get-oauth" target="_blank" rel="noopener noreferrer">Инструкция Яндекса по получению токена</a></p>
+<form action="/seo/yandex" method="post" autocomplete="off" class="seo-token-form"><input type="hidden" name="csrf" value="<%= csrf %>"><label for="webmaster-token">OAuth-токен</label><input class="form-control" id="webmaster-token" type="password" name="token" autocomplete="new-password" maxlength="4096" required><button class="btn btn-primary mt-2">Проверить и подключить</button></form><% } %>
+<p class="seo-meta">Яндекс возвращает выборки страниц в поиске и события исключения. Отсутствие адреса в выборке означает «не подтверждено», а не доказанное отсутствие в индексе.</p></details>
+<% if(data){ %>
+<section class="seo-panel"><h2>Страницы</h2>
+<form method="get" class="seo-filters"><label>Поиск<input class="form-control" name="q" value="<%= selected.q %>" maxlength="200" placeholder="Адрес или название вакансии"></label>
+<label>Тип<select class="form-control" name="type"><% [['','Все страницы'],['job','Вакансии'],['profile','Профили'],['page','Сайт и блог']].forEach(([v,label])=>{ %><option value="<%= v %>" <%= selected.type===v?'selected':'' %>><%= label %></option><% }) %></select></label>
+<label>Google<select class="form-control" name="google"><% [['','Все статусы'],['indexed','В индексе'],['not_indexed','Не в индексе'],['unknown','Ещё не проверено']].forEach(([v,label])=>{ %><option value="<%= v %>" <%= selected.google===v?'selected':'' %>><%= label %></option><% }) %></select></label>
+<label>Яндекс<select class="form-control" name="yandex"><% [['','Все статусы'],['in_search','Найден в поиске'],['excluded_reported','Есть событие исключения'],['unknown','Не подтверждено']].forEach(([v,label])=>{ %><option value="<%= v %>" <%= selected.yandex===v?'selected':'' %>><%= label %></option><% }) %></select></label>
+<label class="seo-check"><input type="checkbox" name="problems" value="1" <%= selected.problems?'checked':'' %>> Только проблемы данных</label><button class="btn btn-primary">Показать</button><a class="btn btn-link" href="/seo">Сбросить</a></form>
+<p>Найдено: <%= rows.total %>. Статусы отражают данные поисковиков на дату проверки.</p>
+<div class="seo-table-wrap"><table class="table seo-table"><thead><tr><th>Страница</th><th>Sitemap / данные</th><th>Уведомление</th><th>Google</th><th>Яндекс</th></tr></thead><tbody>
+<% rows.rows.forEach(p=>{ %><tr><td><span class="seo-type"><%= ({job:'Вакансия',profile:'Профиль',page:'Страница'})[p.type] %></span><% if(p.title){ %><strong class="d-block"><%= p.title %></strong><% } %><a class="seo-url" href="<%= p.url %>" target="_blank" rel="noopener noreferrer"><%= p.url.replace('https://recruitmaster.net','')||'/' %></a></td>
+<td><span class="seo-badge good">В sitemap</span><% if(p.missing.length){ %><p class="seo-issue">Не хватает: <%= p.missing.join(', ') %></p><% } %></td>
+<td><%= p.type==='job'?({accepted:'Google принял',pending:'В очереди',not_sent:'Не отправлено'})[p.notification.status]:'Через sitemap' %><% if(p.notification.acceptedAt){ %><small><%= date(p.notification.acceptedAt) %></small><% } %></td>
+<td><span class="seo-badge <%= p.google.status==='indexed'?'good':p.google.status==='not_indexed'?'warn':'neutral' %>"><%= (p.google.status==='unknown'&&p.google.checkedAt?'Нет подтверждения':({indexed:'В индексе',not_indexed:'Не в индексе',unknown:'Ещё не проверено'})[p.google.status]) %></span><small>Проверено: <%= date(p.google.checkedAt) %><%= p.google.stale?' · устарело':'' %></small><% if(p.google.lastCrawl){ %><small>Обход Google: <%= date(p.google.lastCrawl) %></small><% } %><% if(p.google.coverage){ %><p><%= p.google.coverage %></p><% } %><% if(p.google.canonical&&p.google.canonical!==p.url){ %><small>Канонический адрес Google: <%= p.google.canonical %></small><% } %></td>
+<td><span class="seo-badge <%= p.yandex.status==='in_search'?'good':'neutral' %>"><%= ({in_search:'Найден в поиске',excluded_reported:'Есть событие исключения',unknown:'Не подтверждено'})[p.yandex.status] %></span><small>Проверено: <%= date(p.yandex.checkedAt) %><%= p.yandex.stale?' · устарело':'' %></small><% if(p.yandex.reason){ %><p><%= p.yandex.reason %></p><small>Событие: <%= p.yandex.eventAt %></small><% } %></td></tr><% }) %>
+<% if(!rows.rows.length){ %><tr><td colspan="5">По выбранным фильтрам страниц нет.</td></tr><% } %>
+</tbody></table></div><nav class="seo-pagination" aria-label="Страницы отчёта"><% if(rows.page>1){ %><a class="btn btn-outline-secondary" href="<%= pageUrl(rows.page-1) %>">Назад</a><% } %><span>Страница <%= rows.page %> из <%= rows.totalPages %></span><% if(rows.page<rows.totalPages){ %><a class="btn btn-outline-secondary" href="<%= pageUrl(rows.page+1) %>">Далее</a><% } %></nav>
+</section><% } %>
+</main></div></div></div></div></body></html>

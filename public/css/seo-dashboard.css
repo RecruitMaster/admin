@@ -1,0 +1,234 @@
+.seo-dashboard {
+    padding-bottom: 3rem;
+    color: #263d3b;
+}
+.seo-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin: 1rem 0 1.5rem;
+}
+.seo-heading h1 {
+    font-size: 1.9rem;
+    color: #173c34;
+    font-weight: 700;
+}
+.seo-eyebrow {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    color: #628078;
+    margin: 0 0 0.4rem;
+}
+.seo-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.seo-kpi,
+.seo-panel {
+    background: #fff;
+    border: 1px solid #e0e8e5;
+    border-radius: 12px;
+    padding: 1.25rem;
+}
+.seo-kpi {
+    border-top: 3px solid #289367;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.seo-kpi strong {
+    font-size: 2.4rem;
+    line-height: 1.1;
+    color: #173c34;
+}
+.seo-kpi small,
+.seo-meta {
+    color: #657971;
+}
+.seo-kpi-warning {
+    border-top-color: #d09b35;
+}
+.seo-connections {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+.seo-panel {
+    margin: 1rem 0;
+}
+.seo-connections .seo-panel {
+    margin-top: 0.5rem;
+}
+.seo-panel h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+.seo-panel summary {
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0.15rem 0;
+}
+.seo-panel details[open] summary {
+    margin-bottom: 1rem;
+}
+.seo-meta {
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+.seo-code {
+    font-family: monospace;
+    overflow-wrap: anywhere;
+}
+.seo-map-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem 1rem;
+}
+.seo-map-list > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+.seo-map-list span {
+    white-space: nowrap;
+    color: #657971;
+}
+.seo-filters {
+    display: flex;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    align-items: end;
+    margin: 1.25rem 0;
+}
+.seo-filters label {
+    font-size: 0.8rem;
+    min-width: 135px;
+}
+.seo-filters label:first-child {
+    flex: 1;
+    min-width: 220px;
+}
+.seo-filters .seo-check {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 38px;
+    margin: 0;
+}
+.seo-table-wrap {
+    overflow-x: auto;
+}
+.seo-table {
+    min-width: 1000px;
+    font-size: 0.85rem;
+}
+.seo-table th {
+    white-space: nowrap;
+    background: #f2f7f4;
+    border-top: 0;
+    color: #436157;
+}
+.seo-table td {
+    vertical-align: top;
+    padding: 1rem 0.7rem;
+    max-width: 320px;
+}
+.seo-table small {
+    display: block;
+    color: #6a7b76;
+    margin: 0.4rem 0;
+    overflow-wrap: anywhere;
+}
+.seo-table p {
+    margin: 0.5rem 0;
+    overflow-wrap: anywhere;
+}
+.seo-type {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #7c8d86;
+    display: block;
+    margin-bottom: 0.3rem;
+}
+.seo-url {
+    overflow-wrap: anywhere;
+}
+.seo-badge {
+    display: inline-block;
+    border-radius: 7px;
+    padding: 0.3rem 0.5rem;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+.seo-badge.good {
+    background: #e4f4e9;
+    color: #176135;
+}
+.seo-badge.warn {
+    background: #fff2d7;
+    color: #8b5e11;
+}
+.seo-badge.neutral {
+    background: #edf1f5;
+    color: #566579;
+}
+.seo-issue {
+    color: #99621d;
+    font-size: 0.8rem;
+}
+.seo-pagination {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+.seo-token-form {
+    max-width: 600px;
+}
+@media (max-width: 1100px) {
+    .seo-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .seo-map-list {
+        grid-template-columns: 1fr;
+    }
+}
+@media (max-width: 650px) {
+    .seo-heading {
+        flex-direction: column;
+    }
+    .seo-kpis,
+    .seo-connections {
+        grid-template-columns: 1fr;
+    }
+    .seo-heading h1 {
+        font-size: 1.5rem;
+    }
+    .seo-panel {
+        padding: 1rem;
+    }
+    .seo-filters > * {
+        width: 100%;
+    }
+    .seo-filters label:first-child {
+        min-width: 0;
+    }
+    .seo-map-list > div {
+        display: block;
+    }
+    .seo-map-list span {
+        display: block;
+    }
+    .seo-pagination {
+        justify-content: flex-start;
+    }
+    .seo-kpi strong {
+        font-size: 2rem;
+    }
+}
