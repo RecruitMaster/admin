@@ -3,7 +3,7 @@ from pathlib import Path
 from urllib.request import Request,urlopen
 
 PAYLOAD=None
-RELEASE='seo-dashboard-v1'
+RELEASE='seo-dashboard-v2'
 APP=Path('/opt/recruitmaster-seo')
 DATA=Path('/var/lib/recruitmaster-seo')
 UNITS=Path('/etc/systemd/system')
@@ -20,6 +20,19 @@ def patch(before,hunks):
   if len(found)!=1 or found[0]<cursor:raise RuntimeError('Source context differs; nothing forced')
   i=found[0];lines[i:i+len(old)]=new;cursor=i+len(new)
  return ''.join(lines)
+def integrate(root,name,before):
+ kind={'src/api/index.ts':'router','src/views/partials/sidebar.ejs':'sidebar'}[name]
+ if before is None:raise RuntimeError('Missing integration source: '+name)
+ source=base64.b64decode(PAYLOAD['integrator'])
+ if hashlib.sha256(source).hexdigest()!=PAYLOAD['integratorSha']:raise RuntimeError('Integrator checksum mismatch')
+ with tempfile.TemporaryDirectory(prefix='seo-integrator-')as temp:
+  helper=Path(temp)/'integrate.cjs';helper.write_bytes(source)
+  result=subprocess.run(['node',str(helper),str(root)],input=json.dumps({'kind':kind,'source':before}),capture_output=True,text=True,timeout=30)
+  try:data=json.loads(result.stdout)
+  except Exception:raise RuntimeError(name+': structural integration helper failed; no source changes')from None
+  if result.returncode!=0 or 'error'in data:raise RuntimeError(name+': '+str(data.get('error','integration failed')))
+  if not isinstance(data.get('source'),str):raise RuntimeError(name+': invalid integration result')
+  return data['source']
 def changes(root,manifest):
  result={}
  for name,item in manifest.items():
@@ -27,13 +40,15 @@ def changes(root,manifest):
   safe_dir(file.parent)
   if file.is_symlink():raise RuntimeError('Symlink source refused: '+name)
   before=file.read_text()if file.is_file()else None
-  if before is not None and hashlib.sha256(before.encode()).hexdigest()==item['after']:after=before
+  if name in ['src/api/index.ts','src/views/partials/sidebar.ejs']:after=integrate(root,name,before)
+  elif before is not None and hashlib.sha256(before.encode()).hexdigest()==item['after']:after=before
   elif item.get('before')is None:
    if before is not None:raise RuntimeError('Existing file differs: '+name)
    after=item['body']
   else:
    if before is None:raise RuntimeError('Missing source file: '+name)
-   after=patch(before,item['hunks'])
+   try:after=patch(before,item['hunks'])
+   except RuntimeError as e:raise RuntimeError(name+': '+str(e))from None
   result[name]=(before,after)
  return result
 def process():

@@ -1,7 +1,10 @@
 import importlib.util,subprocess,tempfile,unittest
 from pathlib import Path
+import base64,hashlib,json
 from unittest.mock import patch
-spec=importlib.util.spec_from_file_location('seo_install',Path(__file__).parents[1]/'scripts/seo-dashboard/install.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+ROOT=Path(__file__).resolve().parents[1]
+REAL_RUN=subprocess.run
+spec=importlib.util.spec_from_file_location('seo_install',ROOT/'scripts/seo-dashboard/install.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 class InstallerTests(unittest.TestCase):
  def setUp(self):
   self.temp=tempfile.TemporaryDirectory();self.base=Path(self.temp.name);self.root=self.base/'admin';self.stage=self.base/'stage';self.app=self.base/'collector';self.data=self.base/'data';self.units=self.base/'units'
@@ -40,4 +43,25 @@ class InstallerTests(unittest.TestCase):
   (self.units/m.SERVICE).symlink_to(self.root/'dist/index.js')
   with self.assertRaisesRegex(RuntimeError,'Symlink'):self.install()
   self.assertEqual((self.root/'dist/index.js').read_text(),'old build');self.assertEqual(self.calls,[])
+ def test_installer_integrates_live_formatting_without_modifying_source_during_check(self):
+  before=(ROOT/'src/api/index.ts').read_text().replace("import seo from './seo/seo.route';\n",'').replace("router.use('/seo', checkSessionAndSetUser, seo);\n",'').replace("'",'"').replace('    ','  ')
+  file=self.root/'src/api/index.ts';file.write_text(before)
+  (self.root/'node_modules').symlink_to(ROOT/'node_modules',target_is_directory=True)
+  helper=(ROOT/'scripts/seo-dashboard/integrate.cjs').read_bytes();payload={'integrator':base64.b64encode(helper).decode(),'integratorSha':hashlib.sha256(helper).hexdigest()}
+  manifest={'src/api/index.ts':{'before':'old-different-hash','after':'reviewed-different-format','hunks':[]}}
+  with patch.object(m,'PAYLOAD',payload),patch.object(m.subprocess,'run',REAL_RUN):
+   updates=m.changes(self.root,manifest)
+   self.assertEqual(file.read_text(),before)
+   self.assertIn(".use('/seo', checkSessionAndSetUser, seo)",updates['src/api/index.ts'][1])
+   file.write_text(updates['src/api/index.ts'][1]);again=m.changes(self.root,manifest)
+   self.assertEqual(again['src/api/index.ts'][0],again['src/api/index.ts'][1])
+  self.assertEqual(self.calls,[])
+ def test_structural_failure_identifies_file_without_forcing_changes(self):
+  file=self.root/'src/api/index.ts';before=file.read_text()
+  (self.root/'node_modules').symlink_to(ROOT/'node_modules',target_is_directory=True)
+  helper=(ROOT/'scripts/seo-dashboard/integrate.cjs').read_bytes();payload={'integrator':base64.b64encode(helper).decode(),'integratorSha':hashlib.sha256(helper).hexdigest()}
+  with patch.object(m,'PAYLOAD',payload),patch.object(m.subprocess,'run',REAL_RUN):
+   with self.assertRaisesRegex(RuntimeError,'src/api/index.ts:'):
+    m.changes(self.root,{'src/api/index.ts':{'before':'old','after':'new','hunks':[]}})
+  self.assertEqual(file.read_text(),before)
 if __name__=='__main__':unittest.main()
