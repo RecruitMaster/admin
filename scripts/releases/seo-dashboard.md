@@ -15,24 +15,26 @@ Adds `/seo` and the sidebar entry **SEO · Индексация**. The dashboard
 
 Prerequisites: the current root-run PM2 `rm-admin`, its existing dependencies/build, Linux/systemd, Node 22+, and the Google Indexing observer already installed at `/opt/recruitmaster-indexing/worker.cjs`. The server in this session uses this layout. The installer refuses ambiguous/incompatible source context and a differently privileged admin process instead of opening private data permissions.
 
-Download `seo-dashboard-install-v2.txt` from the pinned GitHub release into Downloads, then:
+Download `seo-dashboard-install-v3.txt` from the pinned GitHub release into Downloads, then:
 
 ```powershell
-$file = Join-Path $env:USERPROFILE 'Downloads\seo-dashboard-install-v2.txt'
+$file = Join-Path $env:USERPROFILE 'Downloads\seo-dashboard-install-v3.txt'
 if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw 'Файл установщика не найден' }
-scp $file root@89.108.113.137:/tmp/seo-dashboard-install-v2.txt
+scp $file root@89.108.113.137:/tmp/seo-dashboard-install-v3.txt
 if ($LASTEXITCODE -ne 0) { throw 'Ошибка загрузки' }
-ssh root@89.108.113.137 'bash /tmp/seo-dashboard-install-v2.txt --check && bash /tmp/seo-dashboard-install-v2.txt'
+ssh root@89.108.113.137 'bash /tmp/seo-dashboard-install-v3.txt --check && bash /tmp/seo-dashboard-install-v3.txt'
 if ($LASTEXITCODE -ne 0) { throw 'Установка остановлена: смотрите сообщение выше' }
 ```
 
 Preflight checks source compatibility, current admin availability, public sitemaps, existing observer and read-only Google site-list access. Google setup problems are reported without preventing a useful sitemap/notification dashboard. No inspection or indexing publish requests are sent by `--check`.
 
-Installer v2 parses the router with the installed TypeScript library and the sidebar with HTML/EJS validation. It tolerates formatting, renamed identifiers and unrelated routes/menu entries; it refuses conflicting or ambiguous SEO mounts. It never replaces the entire router or sidebar.
+Installer v3 retains the v2 structural integration and parses the router with the installed TypeScript library and the sidebar with HTML/EJS validation. It tolerates formatting, renamed identifiers and unrelated routes/menu entries; it refuses conflicting or ambiguous SEO mounts. It never replaces the entire router or sidebar.
 
 The installer stages the admin build, checks for concurrent edits, backs up only the affected sources/build and SEO collector/unit files, then restarts **only the selected admin PM2 process**. It restores admin source/build and SEO units on failure. ATS frontend, backend, nginx, databases, `.env`, Google credentials and the existing notification observer are untouched. SEO cache/quota and tokens are never rolled back or copied into backups.
 
-Successful output: `Installed: seo-dashboard-v2`. Open `https://admin.recruitmaster.net/seo` after signing in. The first snapshot appears after a few minutes; Google status fills in batches. Lovable publication is not required for this admin update.
+Successful output: `Installed: seo-dashboard-v3`. Open `https://admin.recruitmaster.net/seo` after signing in. The first snapshot appears after a few minutes; Google status fills in batches. Lovable publication is not required for this admin update.
+
+Version 3 fixes native Yandex form submission under Helmet: the private SEO routes use `Referrer-Policy: same-origin`, preserving trusted Origin validation. Invalid session form tokens redirect with status 303 to a fresh dashboard form; successful and failed connections also use 303, so refresh does not resubmit credentials. Foreign/null Origins remain rejected; session/role/CSRF checks are retained. The same installer supports a fresh install and an upgrade from v2, preserving unrelated source edits.
 
 ## Collector and quotas
 
@@ -61,7 +63,7 @@ Stopping this collector leaves the dashboard's timestamped snapshot and the sepa
 
 ## Validation
 
-`npm run build`; `node --test tests/seo-collector.cjs tests/seo-dashboard.cjs tests/seo-integrator.cjs`; `python3 tests/seo-installer.py`; local synthetic Chromium checks at 1440 and 390 px. Generated installer payload is checked against the reviewed files. No production database or real Google/Yandex credentials are used by local tests. Actual server/systemd/API checks run during the user-executed installer.
+`npm run build`; `node --test tests/seo-collector.cjs tests/seo-dashboard.cjs tests/seo-integrator.cjs`; `python3 tests/seo-installer.py`; local synthetic Chromium checks at 1440 and 390 px; `PLAYWRIGHT_MODULE=/tmp/rm-vacancy-duty-labels/node_modules/playwright node tests/seo-dashboard-auth.browser.cjs` exercises native forms with real Helmet/session middleware, mocked API/storage and HTTPS traffic resolved exclusively to the local TLS fixture. Generated installer payload is checked against the reviewed files. No production database or real Google/Yandex credentials are used by local tests. Actual server/systemd/API checks run during the user-executed installer.
 
 References:
 

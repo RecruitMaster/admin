@@ -1,6 +1,6 @@
 import importlib.util,subprocess,tempfile,unittest
 from pathlib import Path
-import base64,hashlib,json
+import ast,base64,gzip,hashlib,json
 from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[1]
 REAL_RUN=subprocess.run
@@ -39,6 +39,31 @@ class InstallerTests(unittest.TestCase):
  def test_source_patch_preserves_unrelated_changes_and_rerun(self):
   h=[{'old':['old\n'],'new':['new\n']}];self.assertEqual(m.patch('prefix\nold\nsuffix\n',h),'prefix\nnew\nsuffix\n');self.assertEqual(m.patch('prefix\nnew\nsuffix\n',h),'prefix\nnew\nsuffix\n')
   with self.assertRaises(RuntimeError):m.patch('different\n',h)
+ def test_v3_payload_supports_fresh_install_upgrade_and_repeat_without_losing_edits(self):
+  source=(ROOT/'scripts/releases/seo-dashboard-install-v3.txt').read_text().split("<<'SEO_DASHBOARD_INSTALLER'\n",1)[1].rsplit('\nSEO_DASHBOARD_INSTALLER',1)[0]
+  assignment=next(n for n in ast.parse(source).body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name)and t.id=='PAYLOAD'for t in n.targets))
+  encoded=ast.literal_eval(assignment.value.args[0].args[0].args[0])
+  payload=json.loads(gzip.decompress(base64.b64decode(encoded)))
+  names=['src/api/seo/seo.route.ts','src/views/seo-dashboard.ejs']
+  manifest={name:payload['files'][name]for name in names}
+  for name,item in payload['files'].items():
+   self.assertEqual(item['after'],hashlib.sha256((ROOT/name).read_bytes()).hexdigest())
+  for name in names:
+   file=self.root/name;file.parent.mkdir(parents=True,exist_ok=True)
+  fresh=m.changes(self.root,manifest)
+  for name in names:
+   self.assertEqual(fresh[name],(None,(ROOT/name).read_text()))
+   old=REAL_RUN(['git','show','82fadbb:'+name],cwd=ROOT,check=True,capture_output=True,text=True).stdout
+   (self.root/name).write_text('/* unrelated comment */\n'+old if name.endswith('.ts')else'<!-- unrelated comment -->\n'+old)
+  upgraded=m.changes(self.root,manifest)
+  for name in names:
+   prefix='/* unrelated comment */\n'if name.endswith('.ts')else'<!-- unrelated comment -->\n'
+   self.assertEqual(upgraded[name][1],prefix+(ROOT/name).read_text())
+   (self.root/name).write_text(upgraded[name][1])
+  repeat=m.changes(self.root,manifest)
+  for before,after in repeat.values():self.assertEqual(before,after)
+  (self.root/names[0]).write_text('incompatible changes')
+  with self.assertRaisesRegex(RuntimeError,'Source context differs'):m.changes(self.root,manifest)
  def test_system_symlink_refused_before_mutation(self):
   (self.units/m.SERVICE).symlink_to(self.root/'dist/index.js')
   with self.assertRaisesRegex(RuntimeError,'Symlink'):self.install()

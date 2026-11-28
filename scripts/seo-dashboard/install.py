@@ -3,7 +3,7 @@ from pathlib import Path
 from urllib.request import Request,urlopen
 
 PAYLOAD=None
-RELEASE='seo-dashboard-v2'
+RELEASE='seo-dashboard-v3'
 APP=Path('/opt/recruitmaster-seo')
 DATA=Path('/var/lib/recruitmaster-seo')
 UNITS=Path('/etc/systemd/system')
@@ -44,6 +44,8 @@ def changes(root,manifest):
   elif before is not None and hashlib.sha256(before.encode()).hexdigest()==item['after']:after=before
   elif item.get('before')is None:
    if before is not None:raise RuntimeError('Existing file differs: '+name)
+   after=item['body']
+  elif before is None and item.get('allowCreate'):
    after=item['body']
   else:
    if before is None:raise RuntimeError('Missing source file: '+name)

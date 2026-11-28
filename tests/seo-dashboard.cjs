@@ -15,9 +15,9 @@ test('dashboard requires current admin role; CSRF/origin reject mutations; HTML 
  try{
   for(const user of ['anonymous','recruiter'])assert.equal((await fetch(base+'/seo',{headers:{'x-fixture-user':user}})).status,403);
   const response=await fetch(base+'/seo');const html=await response.text();assert.equal(response.status,200);assert.equal(response.headers.get('cache-control'),'private, no-store');assert.match(response.headers.get('x-robots-tag'),/noindex/);assert.match(html,/&lt;script&gt;/);assert.ok(!html.includes('<script>alert("xss")</script>'));
-  assert.equal((await fetch(base+'/seo/yandex',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'csrf=wrong&token=secret'})).status,403);
+  const expired=await fetch(base+'/seo/yandex',{method:'POST',redirect:'manual',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'csrf=wrong&token=secret'});assert.equal(expired.status,303);assert.equal(expired.headers.get('location'),'/seo?message=form_expired');
   const csrf=/name="csrf" value="([a-f0-9]{64})"/.exec(html)[1];
   assert.equal((await fetch(base+'/seo/yandex',{method:'POST',headers:{Origin:'https://evil.example','Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({csrf,token:'secret'})})).status,403);
-  assert.equal((await fetch(base+'/seo/yandex',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({csrf:'я'.repeat(64),token:'secret'})})).status,403);
+  assert.equal((await fetch(base+'/seo/yandex',{method:'POST',redirect:'manual',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({csrf:'я'.repeat(64),token:'secret'})})).status,303);
  }finally{server.close();}
 });

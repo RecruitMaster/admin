@@ -11,7 +11,14 @@ declare module 'express-session' {
 }
 const router = Router();
 router.use(async (req, res, next) => {
-    res.set({ 'Cache-Control': 'private, no-store', 'X-Robots-Tag': 'noindex, nofollow' });
+    res.set({
+        'Cache-Control': 'private, no-store',
+        'X-Robots-Tag': 'noindex, nofollow',
+        // Helmet's global no-referrer policy produces Origin: null on native
+        // form POSTs. Same-origin retains the real Origin for this private form
+        // and still withholds the Referer on all external navigations.
+        'Referrer-Policy': 'same-origin',
+    });
     if (!req.session.user) return res.status(403).send('Нет доступа');
     const [admin] = await AppDataSource.query('SELECT role,status FROM "user" WHERE id=$1 AND deleted_at IS NULL', [
         req.session.user.id,
@@ -50,7 +57,7 @@ router.get('/', async (req, res) => {
         date,
         pageUrl,
         yandexConfigured: fs.existsSync(YANDEX_KEY),
-        message: ['yandex_connected', 'yandex_disconnected', 'yandex_failed'].includes(String(req.query.message))
+        message: ['yandex_connected', 'yandex_disconnected', 'yandex_failed', 'form_expired'].includes(String(req.query.message))
             ? String(req.query.message)
             : '',
         stale: !!data && Date.now() - Date.parse(data.generatedAt) > 3600000,
@@ -59,14 +66,14 @@ router.get('/', async (req, res) => {
 router.use((req, res, next) => {
     const token = req.body?.csrf;
     if (req.get('origin') && req.get('origin') !== 'https://admin.recruitmaster.net')
-        return res.status(403).send('Обновите страницу');
+        return res.status(403).send('Запрос отклонён');
     if (
         typeof token !== 'string' ||
         !req.session.seoToken ||
         !/^[a-f0-9]{64}$/.test(token) ||
         !crypto.timingSafeEqual(Buffer.from(token), Buffer.from(req.session.seoToken))
     )
-        return res.status(403).send('Обновите страницу');
+        return res.redirect(303, '/seo?message=form_expired');
     next();
 });
 router.post('/yandex', async (req, res) => {
@@ -74,9 +81,9 @@ router.post('/yandex', async (req, res) => {
         if (typeof req.body.token !== 'string') throw Error('missing_token');
         const config = await validateYandex(req.body.token.trim());
         saveYandex(config);
-        return res.redirect('/seo?message=yandex_connected');
+        return res.redirect(303, '/seo?message=yandex_connected');
     } catch {
-        return res.redirect('/seo?message=yandex_failed');
+        return res.redirect(303, '/seo?message=yandex_failed');
     }
 });
 router.post('/yandex/disconnect', (req, res) => {
@@ -85,6 +92,6 @@ router.post('/yandex/disconnect', (req, res) => {
     } catch (e: any) {
         if (e.code !== 'ENOENT') return res.status(503).send('Не удалось отключить Яндекс');
     }
-    return res.redirect('/seo?message=yandex_disconnected');
+    return res.redirect(303, '/seo?message=yandex_disconnected');
 });
 export default router;
