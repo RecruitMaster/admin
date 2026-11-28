@@ -1,0 +1,86 @@
+'use strict';
+// Read-only diagnostics. Never print tokens, response bodies, exception text,
+// user IDs or Authorization headers. Uses the collector's actual HTTP helper.
+const fs = require('node:fs');
+const API = 'https://api.webmaster.yandex.net/v4';
+const HOST = 'https:recruitmaster.net:443';
+const SAFE_CODES = new Set([
+    'ACCESS_FORBIDDEN', 'INVALID_OAUTH_TOKEN', 'INVALID_USER_ID', 'HOST_NOT_VERIFIED',
+    'HOST_NOT_FOUND', 'INVALID_HOST_ID', 'HOST_DATA_NOT_LOADED', 'HOST_DATA_NOT_READY',
+    'INTERNAL_ERROR', 'INVALID_URL', 'FIELD_VALIDATION_ERROR', 'ENTITY_VALIDATION_ERROR',
+    'TOO_MANY_REQUESTS', 'TOO_MANY_QUERIES', 'QUOTA_EXCEEDED',
+]);
+function parse(text) {
+    try { return JSON.parse(text.replace(/("(?:user_id|available_user_id)"\s*:\s*)(\d+)/g, '$1"$2"')); }
+    catch { return null; }
+}
+function readKey(file = '/etc/recruitmaster/yandex-webmaster.json') {
+    const fd = fs.openSync(file, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+    try {
+        const stat = fs.fstatSync(fd);
+        if (!stat.isFile() || stat.uid !== process.getuid() || (stat.mode & 0o077) || stat.size > 16384)
+            throw Error('unsafe_credentials');
+        const token = JSON.parse(fs.readFileSync(fd, 'utf8')).access_token;
+        if (typeof token !== 'string' || !/^[A-Za-z0-9_.-]{10,4096}$/.test(token)) throw Error('invalid_credentials');
+        return token;
+    } finally { fs.closeSync(fd); }
+}
+async function diagnose({ request, token }) {
+    const rows = [];
+    async function get(step, route, userId) {
+        let response;
+        try {
+            response = await request(API + route, { headers: { Authorization: 'OAuth ' + token, Accept: 'application/json' } });
+        } catch {
+            rows.push({ step, status: 'network_error' });
+            return null;
+        }
+        const data = parse(response.text), status = response.status;
+        const rawCode = data?.error_code ?? data?.code;
+        const code = SAFE_CODES.has(rawCode) ? rawCode : rawCode ? 'OTHER_API_ERROR' : null;
+        const row = { step, http: Number.isInteger(status) ? status : null,
+            responseFormat: data !== null ? 'json' : /^\s*(?:<!doctype\s+html|<html)\b/i.test(response.text) ? 'html' : 'other' };
+        if (status !== 200) row.apiCode = code || 'NO_RECOGNIZED_API_CODE';
+        if (userId && data?.available_user_id !== undefined)
+            row.availableUserMatches = String(data.available_user_id) === userId;
+        if (status === 200 && Array.isArray(data?.samples)) {
+            row.samplesReturned = data.samples.length;
+            if (Number.isSafeInteger(data.count) && data.count >= 0) row.totalReported = data.count;
+        }
+        rows.push(row);
+        return { status, data };
+    }
+    const user = await get('user', '/user');
+    if (user?.status !== 200) return rows;
+    const id = String(user.data?.user_id || '');
+    if (!/^\d+$/.test(id)) { rows.push({ step: 'identity', status: 'invalid_user_response' }); return rows; }
+    const hosts = await get('hosts', '/user/' + id + '/hosts', id);
+    if (hosts?.status !== 200) return rows;
+    if (!Array.isArray(hosts.data?.hosts)) { rows.push({ step: 'site', status: 'invalid_hosts_response' }); return rows; }
+    const host = hosts.data.hosts.find(h => h?.host_id === HOST && h.ascii_host_url === 'https://recruitmaster.net/');
+    rows.push({ step: 'site', present: !!host, verified: host?.verified === true });
+    if (!host || host.verified !== true) return rows;
+    for (const [step, suffix] of [
+        ['in_search', '/search-urls/in-search/samples?offset=0&limit=1'],
+        ['events', '/search-urls/events/samples?offset=0&limit=1'],
+    ]) {
+        const base = '/user/' + id + '/hosts/';
+        const result = await get(step + '_encoded_host', base + encodeURIComponent(HOST) + suffix, id);
+        // Compare the fixed documented host ID in its literal form only when
+        // an encoded path was refused. Both requests are GETs to the same API.
+        if (result && [400, 403, 404].includes(result.status))
+            await get(step + '_literal_host', base + HOST + suffix, id);
+    }
+    return rows;
+}
+async function main() {
+    if (process.getuid?.() !== 0) { console.log(JSON.stringify({ step: 'preflight', status: 'root_required' })); process.exitCode = 1; return; }
+    let token, request;
+    try { token = readKey(); } catch { console.log(JSON.stringify({ step: 'credentials', status: 'missing_invalid_or_unsafe_file' })); process.exitCode = 1; return; }
+    try { request = require('/opt/recruitmaster-indexing/worker.cjs').request; if (typeof request !== 'function') throw Error(); }
+    catch { console.log(JSON.stringify({ step: 'preflight', status: 'collector_http_helper_unavailable' })); process.exitCode = 1; return; }
+    console.log('Yandex Webmaster read-only diagnostics v1');
+    for (const row of await diagnose({ request, token })) console.log(JSON.stringify(row));
+}
+module.exports = { diagnose, readKey };
+if (require.main === module) main().catch(() => { console.log(JSON.stringify({ step: 'diagnostic', status: 'failed' })); process.exitCode = 1; });
