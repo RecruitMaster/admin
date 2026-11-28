@@ -1,10 +1,10 @@
-# Yandex Webmaster read-only diagnostics v1
+# Yandex Webmaster read-only diagnostics v2
 
 For a saved dashboard token followed by `yandex_http_403`, this tool isolates
 the failed API request before changing the application or its permissions.
 
-Download `yandex-webmaster-check-v1.txt`, upload it to `/tmp` with `scp`, then
-execute `bash /tmp/yandex-webmaster-check-v1.txt` as root via SSH. It loads the
+Download `yandex-webmaster-check-v2.txt`, upload it to `/tmp` with `scp`, then
+execute `bash /tmp/yandex-webmaster-check-v2.txt` as root via SSH. It loads the
 existing Node environment and uses the notification observer's HTTP helper,
 the same transport used by the SEO collector.
 
@@ -25,6 +25,10 @@ are never printed.
 - `INVALID_USER_ID`: Yandex says the path user differs from the token owner;
   an optional boolean compares the available ID without revealing it.
 - `HOST_NOT_VERIFIED`: rights are not confirmed for this site/token identity.
+- `HOST_NOT_LOADED`: website data has not been loaded into Yandex Webmaster.
+- `HOST_NOT_INDEXED`: Yandex reports that the host has not yet been indexed.
+- `RESOURCE_NOT_FOUND`: the requested API resource does not exist.
+  Version 1 masked these three documented 404 reasons as `OTHER_API_ERROR`.
 - `html` + `NO_RECOGNIZED_API_CODE`: refusal did not contain a recognized JSON
   API error. Do not infer token permissions from HTTP status alone.
 - Encoded path refusal followed by literal path HTTP 200: investigate host-ID

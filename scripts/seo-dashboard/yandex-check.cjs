@@ -9,6 +9,8 @@ const SAFE_CODES = new Set([
     'HOST_NOT_FOUND', 'INVALID_HOST_ID', 'HOST_DATA_NOT_LOADED', 'HOST_DATA_NOT_READY',
     'INTERNAL_ERROR', 'INVALID_URL', 'FIELD_VALIDATION_ERROR', 'ENTITY_VALIDATION_ERROR',
     'TOO_MANY_REQUESTS', 'TOO_MANY_QUERIES', 'QUOTA_EXCEEDED',
+    // Documented 404 reasons; v1 replaced these with OTHER_API_ERROR.
+    'HOST_NOT_INDEXED', 'HOST_NOT_LOADED', 'RESOURCE_NOT_FOUND',
 ]);
 function parse(text) {
     try { return JSON.parse(text.replace(/("(?:user_id|available_user_id)"\s*:\s*)(\d+)/g, '$1"$2"')); }
@@ -79,7 +81,7 @@ async function main() {
     try { token = readKey(); } catch { console.log(JSON.stringify({ step: 'credentials', status: 'missing_invalid_or_unsafe_file' })); process.exitCode = 1; return; }
     try { request = require('/opt/recruitmaster-indexing/worker.cjs').request; if (typeof request !== 'function') throw Error(); }
     catch { console.log(JSON.stringify({ step: 'preflight', status: 'collector_http_helper_unavailable' })); process.exitCode = 1; return; }
-    console.log('Yandex Webmaster read-only diagnostics v1');
+    console.log('Yandex Webmaster read-only diagnostics v2');
     for (const row of await diagnose({ request, token })) console.log(JSON.stringify(row));
 }
 module.exports = { diagnose, readKey };

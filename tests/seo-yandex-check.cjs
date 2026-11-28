@@ -42,6 +42,15 @@ test('non-API refusals and exceptions are classified without leaking their conte
     const failed = await diagnose({ token, request: async () => { throw Error(token); } });
     assert.deepEqual(failed, [{ step: 'user', status: 'network_error' }]);
 });
+test('documented 404 states remain distinguishable without reflecting provider messages', async () => {
+    for (const code of ['HOST_NOT_INDEXED', 'HOST_NOT_LOADED', 'RESOURCE_NOT_FOUND']) {
+        const f = fixture(() => ({ status: 404, text: JSON.stringify({ error_code: code, error_message: token }) }));
+        const rows = await diagnose({ request: f.request, token });
+        assert.equal(rows.find(row => row.step === 'in_search_encoded_host').apiCode, code);
+        assert.equal(rows.find(row => row.step === 'events_literal_host').apiCode, code);
+        assert.ok(!JSON.stringify(rows).includes(token));
+    }
+});
 test('token file stays unchanged and unsafe permissions/symlinks are refused', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'yandex-check-')), file = path.join(dir, 'key.json');
     try {
@@ -53,7 +62,7 @@ test('token file stays unchanged and unsafe permissions/symlinks are refused', (
 });
 test('generated Raw script actually invokes diagnostics from stdin without installing or writing', async () => {
     const vm = require('node:vm');
-    const shell = fs.readFileSync(path.join(__dirname, '../scripts/releases/yandex-webmaster-check-v1.txt'), 'utf8');
+    const shell = fs.readFileSync(path.join(__dirname, '../scripts/releases/yandex-webmaster-check-v2.txt'), 'utf8');
     const source = shell.split("node <<'RECRUITMASTER_YANDEX_CHECK'\n")[1].split('\nRECRUITMASTER_YANDEX_CHECK')[0];
     const output = [], f = fixture(() => ({ status: 200, text: '{"count":0,"samples":[]}' }));
     const fakeFs = {
