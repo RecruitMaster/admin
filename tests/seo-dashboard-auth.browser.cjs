@@ -16,8 +16,17 @@ require.cache[databaseId] = { id: databaseId, filename: databaseId, loaded: true
 service.loadSnapshot = () => ({ data: null, error: '' });
 const calls = [], writes = [], posts = [];
 const token = 'local-test-only-never-a-real-token';
-service.validateYandex = async value => { calls.push(value); if (value !== token) throw Error('invalid'); return { access_token: value }; };
-service.saveYandex = value => writes.push(value);
+const validateYandex = service.validateYandex;
+service.validateYandex = async value => {
+    calls.push(value);
+    return validateYandex(value, async url => {
+        if (value !== token && value !== 'storage-failure-test-token') return new Response('{}', { status: 401 });
+        return url.endsWith('/v4/user') ? Response.json({ user_id: 123 }) : Response.json({ hosts: [
+            { host_id: 'https:recruitmaster.net:443', ascii_host_url: 'https://recruitmaster.net/', verified: true }
+        ] });
+    });
+};
+service.saveYandex = value => { if (value.access_token === 'storage-failure-test-token') throw Error('private-file-error'); writes.push(value); };
 const router = require('../dist/api/seo/seo.route.js').default;
 const app = express();
 app.use(helmet());
@@ -77,9 +86,20 @@ app.use('/seo', router);
         }
         assert.equal(calls.length, 1); assert.equal(writes.length, 1);
         await page.getByLabel('OAuth-токен', { exact: true }).fill('invalid-local-token');
-        await Promise.all([page.waitForURL('**/seo?message=yandex_failed'), page.getByRole('button', { name: 'Проверить и подключить' }).click()]);
+        await Promise.all([page.waitForURL('**/seo?message=yandex_failed&reason=yandex_unauthorized'), page.getByRole('button', { name: 'Проверить и подключить' }).click()]);
         assert.equal(writes.length, 1);
+        assert.ok((await page.textContent('body')).includes('Яндекс не принял токен'));
+        assert.ok(!(await page.content()).includes('invalid-local-token'));
         await page.reload(); assert.equal(posts.length, count + 4);
+        await page.getByLabel('OAuth-токен', { exact: true }).fill('storage-failure-test-token');
+        await Promise.all([page.waitForURL('**/seo?message=yandex_failed&reason=yandex_save_failed'), page.getByRole('button', { name: 'Проверить и подключить' }).click()]);
+        assert.equal(writes.length, 1);
+        const failedHtml = await page.content();
+        assert.ok(failedHtml.includes('сервер не смог сохранить токен'));
+        assert.ok(!failedHtml.includes('private-file-error'));
+        assert.ok(!failedHtml.includes('storage-failure-test-token'));
+        await page.goto(origin + '/seo?message=yandex_failed&reason=' + encodeURIComponent('<script>private-secret</script>'));
+        assert.ok(!(await page.content()).includes('private-secret'));
         await context.close();
         console.log('PASS: Helmet/native form with real session, trusted Origin, 303 then GET, expired CSRF, foreign/null Origin rejection, validation failure, no credential echo.');
     } finally {

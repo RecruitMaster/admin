@@ -208,7 +208,7 @@ async function yandexIdentity(w, fetcher, token) {
     const id = String(user.user_id || '');
     if (!/^\d+$/.test(id)) problem('invalid_yandex_user');
     const hosts = await yaRequest(w, fetcher, token, '/user/' + id + '/hosts');
-    const host = hosts.hosts?.find((h) => h.host_url === 'https://recruitmaster.net/' && h.verified === true);
+    const host = hosts.hosts?.find((h) => h.ascii_host_url === 'https://recruitmaster.net/' && h.verified === true);
     if (!host || host.host_id !== 'https:recruitmaster.net:443') problem('yandex_host_not_verified');
     return { userId: id, hostId: host.host_id };
 }

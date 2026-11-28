@@ -10,6 +10,19 @@ declare module 'express-session' {
     }
 }
 const router = Router();
+// Only fixed messages/codes reach the browser. Never reflect provider bodies,
+// filesystem errors or credentials, including messages from unexpected errors.
+const yandexErrors: Record<string, string> = {
+    invalid_yandex_token: 'Вставьте только OAuth-токен целиком, без адреса страницы и параметров ссылки.',
+    yandex_unauthorized: 'Яндекс не принял токен: он недействителен или отозван. Получите новый OAuth-токен.',
+    yandex_forbidden: 'Яндекс запретил доступ. Проверьте право webmaster:hostinfo и получите токен заново после изменения прав.',
+    yandex_host_missing: 'В аккаунте владельца токена нет сайта https://recruitmaster.net/. Добавьте этот адрес в Яндекс.Вебмастер или используйте токен нужного аккаунта.',
+    yandex_host_not_verified: 'Сайт https://recruitmaster.net/ найден, но права на него не подтверждены в аккаунте владельца токена.',
+    yandex_network_error: 'Сервер не смог связаться с API Яндекс.Вебмастера. Повторите подключение позже.',
+    yandex_unavailable: 'API Яндекс.Вебмастера временно недоступен или ограничил запросы. Повторите подключение позже.',
+    invalid_yandex_response: 'API Яндекс.Вебмастера вернул неожиданный ответ. Нужна проверка интеграции.',
+    yandex_save_failed: 'Доступ к Яндексу подтверждён, но сервер не смог сохранить токен. Нужна проверка прав каталога настроек.',
+};
 router.use(async (req, res, next) => {
     res.set({
         'Cache-Control': 'private, no-store',
@@ -61,6 +74,8 @@ router.get('/', async (req, res) => {
             ? String(req.query.message)
             : '',
         stale: !!data && Date.now() - Date.parse(data.generatedAt) > 3600000,
+        yandexError: Object.prototype.hasOwnProperty.call(yandexErrors, String(req.query.reason))
+            ? yandexErrors[String(req.query.reason)] : 'Не удалось подключить Яндекс. Нужна проверка интеграции.',
     });
 });
 router.use((req, res, next) => {
@@ -80,10 +95,12 @@ router.post('/yandex', async (req, res) => {
     try {
         if (typeof req.body.token !== 'string') throw Error('missing_token');
         const config = await validateYandex(req.body.token.trim());
-        saveYandex(config);
+        try { saveYandex(config); } catch { throw Error('yandex_save_failed'); }
         return res.redirect(303, '/seo?message=yandex_connected');
-    } catch {
-        return res.redirect(303, '/seo?message=yandex_failed');
+    } catch (error: unknown) {
+        const reason = error instanceof Error && Object.prototype.hasOwnProperty.call(yandexErrors, error.message)
+            ? error.message : 'unknown';
+        return res.redirect(303, '/seo?message=yandex_failed&reason=' + reason);
     }
 });
 router.post('/yandex/disconnect', (req, res) => {

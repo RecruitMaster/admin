@@ -12,7 +12,7 @@ function fixture(options={}){
   if(u===c.TOKEN){const jwt=new URLSearchParams(init.body).get('assertion'),[h,p,s]=jwt.split('.');assert.equal(JSON.parse(Buffer.from(p,'base64url')).scope,'https://www.googleapis.com/auth/webmasters.readonly');assert.ok(crypto.verify('RSA-SHA256',Buffer.from(h+'.'+p),publicKey,Buffer.from(s,'base64url')));return Response.json({access_token:'private-google-token'});}
   if(u===c.INSPECT){assert.equal(init.method,'POST');assert.equal(init.headers.Authorization,'Bearer private-google-token');if(options.denied)return new Response('{}',{status:403});const p=JSON.parse(init.body);return Response.json({inspectionResult:{indexStatusResult:{verdict:p.inspectionUrl===job?'PASS':'NEUTRAL',coverageState:p.inspectionUrl===job?'Indexed':'URL неизвестен Google',googleCanonical:p.inspectionUrl,lastCrawlTime:'2026-11-20T12:00:00Z'}}});}
   if(u===c.YA+'/user')return new Response('{"user_id":9007199254740993}');
-  if(u===c.YA+'/user/9007199254740993/hosts')return Response.json({hosts:[{host_url:c.SITE+'/',host_id:'https:recruitmaster.net:443',verified:!options.unverified}]});
+  if(u===c.YA+'/user/9007199254740993/hosts')return Response.json({hosts:[{ascii_host_url:c.SITE+'/',unicode_host_url:c.SITE+'/',host_id:'https:recruitmaster.net:443',verified:!options.unverified}]});
   if(u.includes('/search-urls/in-search/samples?'))return Response.json({count:1,samples:[{url:job,last_access:'2026-11-20'}]});
   if(u.includes('/search-urls/events/samples?'))return Response.json({count:1,samples:[{url:profile,event:'REMOVED_FROM_SEARCH',excluded_url_status:'NO_INDEX',event_date:'2026-10-10'}]});
   throw Error('Unexpected endpoint: '+u);

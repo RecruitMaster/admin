@@ -166,30 +166,31 @@ export function pageData(data: ReturnType<typeof sanitizeSnapshot>, f: ReturnTyp
 export async function validateYandex(token: string, fetcher: typeof fetch = fetch) {
     if (!/^[A-Za-z0-9_.-]{10,4096}$/.test(token)) throw Error('invalid_yandex_token');
     async function read(route: string) {
-        const r = await fetcher('https://api.webmaster.yandex.net/v4' + route, {
+        let r: Response;
+        try { r = await fetcher('https://api.webmaster.yandex.net/v4' + route, {
             headers: { Authorization: 'OAuth ' + token, Accept: 'application/json' },
             redirect: 'manual',
             credentials: 'omit',
             signal: AbortSignal.timeout(10000),
-        });
-        if (r.status !== 200) throw Error('yandex_access_denied');
-        const body = await r.text();
+        }); } catch { throw Error('yandex_network_error'); }
+        if (r.status === 401) throw Error('yandex_unauthorized');
+        if (r.status === 403) throw Error('yandex_forbidden');
+        if (r.status !== 200) throw Error('yandex_unavailable');
+        let body: string;
+        try { body = await r.text(); } catch { throw Error('yandex_network_error'); }
         if (body.length > 1024 * 1024) throw Error('invalid_yandex_response');
-        return JSON.parse(body.replace(/("user_id"\s*:\s*)(\d+)/g, '$1"$2"'));
+        try { return JSON.parse(body.replace(/("user_id"\s*:\s*)(\d+)/g, '$1"$2"')); }
+        catch { throw Error('invalid_yandex_response'); }
     }
     const user = await read('/user'),
-        id = String(user.user_id || '');
-    if (!/^\d+$/.test(id)) throw Error('invalid_yandex_user');
+        id = String(user?.user_id || '');
+    if (!/^\d+$/.test(id)) throw Error('invalid_yandex_response');
     const hosts = await read('/user/' + id + '/hosts');
-    if (
-        !hosts.hosts?.some(
-            (h: any) =>
-                h.host_url === 'https://recruitmaster.net/' &&
-                h.host_id === 'https:recruitmaster.net:443' &&
-                h.verified === true,
-        )
-    )
-        throw Error('yandex_host_not_verified');
+    if (!Array.isArray(hosts?.hosts)) throw Error('invalid_yandex_response');
+    const host = hosts.hosts.find((h: any) => h?.ascii_host_url === 'https://recruitmaster.net/' &&
+        h.host_id === 'https:recruitmaster.net:443');
+    if (!host) throw Error('yandex_host_missing');
+    if (host.verified !== true) throw Error('yandex_host_not_verified');
     return { access_token: token };
 }
 export function saveYandex(config: { access_token: string }, file = YANDEX_KEY) {

@@ -39,12 +39,12 @@ class InstallerTests(unittest.TestCase):
  def test_source_patch_preserves_unrelated_changes_and_rerun(self):
   h=[{'old':['old\n'],'new':['new\n']}];self.assertEqual(m.patch('prefix\nold\nsuffix\n',h),'prefix\nnew\nsuffix\n');self.assertEqual(m.patch('prefix\nnew\nsuffix\n',h),'prefix\nnew\nsuffix\n')
   with self.assertRaises(RuntimeError):m.patch('different\n',h)
- def test_v3_payload_supports_fresh_install_upgrade_and_repeat_without_losing_edits(self):
-  source=(ROOT/'scripts/releases/seo-dashboard-install-v3.txt').read_text().split("<<'SEO_DASHBOARD_INSTALLER'\n",1)[1].rsplit('\nSEO_DASHBOARD_INSTALLER',1)[0]
+ def test_v4_payload_supports_fresh_install_upgrade_and_repeat_without_losing_edits(self):
+  source=(ROOT/'scripts/releases/seo-dashboard-install-v4.txt').read_text().split("<<'SEO_DASHBOARD_INSTALLER'\n",1)[1].rsplit('\nSEO_DASHBOARD_INSTALLER',1)[0]
   assignment=next(n for n in ast.parse(source).body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name)and t.id=='PAYLOAD'for t in n.targets))
   encoded=ast.literal_eval(assignment.value.args[0].args[0].args[0])
   payload=json.loads(gzip.decompress(base64.b64decode(encoded)))
-  names=['src/api/seo/seo.route.ts','src/views/seo-dashboard.ejs']
+  names=['src/api/seo/seo.route.ts','src/views/seo-dashboard.ejs','src/api/seo/seo.service.ts']
   manifest={name:payload['files'][name]for name in names}
   for name,item in payload['files'].items():
    self.assertEqual(item['after'],hashlib.sha256((ROOT/name).read_bytes()).hexdigest())
@@ -53,7 +53,7 @@ class InstallerTests(unittest.TestCase):
   fresh=m.changes(self.root,manifest)
   for name in names:
    self.assertEqual(fresh[name],(None,(ROOT/name).read_text()))
-   old=REAL_RUN(['git','show','82fadbb:'+name],cwd=ROOT,check=True,capture_output=True,text=True).stdout
+   old=REAL_RUN(['git','show','9244b64:'+name],cwd=ROOT,check=True,capture_output=True,text=True).stdout
    (self.root/name).write_text('/* unrelated comment */\n'+old if name.endswith('.ts')else'<!-- unrelated comment -->\n'+old)
   upgraded=m.changes(self.root,manifest)
   for name in names:

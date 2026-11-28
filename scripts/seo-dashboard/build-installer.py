@@ -4,12 +4,12 @@ root=Path(__file__).resolve().parents[2]
 files=['src/api/index.ts','src/views/partials/sidebar.ejs','src/api/seo/seo.route.ts','src/api/seo/seo.service.ts','src/views/seo-dashboard.ejs','public/css/seo-dashboard.css']
 manifest={}
 for name in files:
- base='82fadbb'if name in ['src/api/seo/seo.route.ts','src/views/seo-dashboard.ejs']else'ab5e19e'
+ base='9244b64'if name in ['src/api/seo/seo.route.ts','src/views/seo-dashboard.ejs','src/api/seo/seo.service.ts']else'ab5e19e'
  old=subprocess.run(['git','show',base+':'+name],cwd=root,capture_output=True)
  before=old.stdout.decode()if old.returncode==0 else None;after=(root/name).read_text();item={'before':hashlib.sha256(before.encode()).hexdigest()if before is not None else None,'after':hashlib.sha256(after.encode()).hexdigest()}
  if before is None:item['body']=after
  else:
-  if name in ['src/api/seo/seo.route.ts','src/views/seo-dashboard.ejs']:item['allowCreate']=True;item['body']=after
+  if name in ['src/api/seo/seo.route.ts','src/views/seo-dashboard.ejs','src/api/seo/seo.service.ts']:item['allowCreate']=True;item['body']=after
   a,b=before.splitlines(True),after.splitlines(True);item['hunks']=[]
   for g in difflib.SequenceMatcher(None,a,b).get_grouped_opcodes(2):item['hunks'].append({'old':a[g[0][1]:g[-1][2]],'new':b[g[0][3]:g[-1][4]]})
  manifest[name]=item
@@ -27,4 +27,4 @@ for init in "${NVM_DIR:-$HOME/.nvm}/nvm.sh" /root/.nvm/nvm.sh /home/rm/.nvm/nvm.
 done
 python3 - "$@" <<'SEO_DASHBOARD_INSTALLER'
 '''
-target=root/'scripts/releases/seo-dashboard-install-v3.txt';target.write_text(header+source+'\nSEO_DASHBOARD_INSTALLER\n');print('Built:',target)
+target=root/'scripts/releases/seo-dashboard-install-v4.txt';target.write_text(header+source+'\nSEO_DASHBOARD_INSTALLER\n');print('Built:',target)

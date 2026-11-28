@@ -3,7 +3,7 @@ from pathlib import Path
 from urllib.request import Request,urlopen
 
 PAYLOAD=None
-RELEASE='seo-dashboard-v3'
+RELEASE='seo-dashboard-v4'
 APP=Path('/opt/recruitmaster-seo')
 DATA=Path('/var/lib/recruitmaster-seo')
 UNITS=Path('/etc/systemd/system')
